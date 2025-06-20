@@ -2,22 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Masterfile Access</title>
+  <title>DLSZ Masterfile</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
-  <div id="access-container">
-    <h1>Enter Access Code</h1>
-    <input type="password" id="accessCode" placeholder="Access Code" />
-    <button onclick="submitCode()">Enter</button>
-    <p id="message"></p>
+  <div class="container">
+
+    <div class="card">
+      <h2>🏹 DLSZ Resources</h2>
+      <p>these are a compilation of all of the resources we use in DLSZ</p>
+      
+      <p>📚 <strong>EBSCOHOST</strong><br>
+      <a href="http://search.ebscohost.com" target="_blank">http://search.ebscohost.com</a><br>
+      Username: <code>brstudent</code><br>
+      Password: <code>zobel@1</code></p>
+
+      <p>📚 <strong>PROQUEST</strong><br>
+      <a href="http://search.proquest.com" target="_blank">http://search.proquest.com</a><br>
+      Username: <code>dlszbrstudent</code><br>
+      Password: <code>Dlszobel@1</code></p>
+
+      <p>🧬 <a href="https://sites.google.com/dlszobel.edu.ph/mrslui-online-library/home" target="_blank">Ms. Lui's Online Library</a></p>
+    </div>
+
+    <div class="card">
+      <h2>👤 GENERAL</h2>
+      <p>this general list contains both IB and DepEd SHS resources to use. to use the IB notes, choose the subject and then always use HL (if SL is unavailable) for maximized notes, as HL is more in-depth and rigorous.</p>
+      <p class="note">(NOTE: All of these websites are supplementary only for your studies, you should always use your Canvas PPTs and your lectures as your MAIN source of information for studying)</p>
+
+      <p>📚 <a href="https://smearchive.pages.dev/dp/" target="_blank">SME Archive</a></p>
+      <p>📚 <a href="https://www.iitianacademy.com" target="_blank">IITianAcademy</a></p>
+    </div>
+
+    <div class="card">
+      <h2>🧬 BIO</h2>
+      <p>🧬 <a href="https://khanacademy.org/science/biology" target="_blank">Khan Academy Biology</a></p>
+      <p>🧬 <a href="https://ib.bioninja.com.au" target="_blank">BioNinja Archive</a></p>
+    </div>
+
   </div>
 
-  <div id="links-container" style="display:none;">
-    <h2>Useful Links</h2>
-    <ul id="linksList"></ul>
-  </div>
+  <!-- 1️⃣ Load Twemoji library FIRST -->
+  <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
 
-  <script src="main.js"></script>
+  <!-- 2️⃣ THEN run parse code -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if (typeof twemoji !== 'undefined') {
+        twemoji.parse(document.body, { folder: 'svg', ext: '.svg' });
+      } else {
+        console.error("Twemoji library failed to load.");
+      }
+    });
+  </script>
 </body>
 </html>

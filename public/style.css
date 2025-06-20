@@ -1,13 +1,45 @@
 body {
-  font-family: sans-serif;
-  text-align: center;
-  margin-top: 50px;
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #333;
+  margin: 0;
+  padding: 20px;
 }
-input {
-  padding: 10px;
-  font-size: 1em;
+
+.container {
+  max-width: 800px;
+  margin: auto;
 }
-button {
-  padding: 10px 20px;
-  font-size: 1em;
+
+.card {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 20px;
+  margin-bottom: 20px;
+  background: #fff;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+a {
+  color: #007aff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  background: #f7f7f7;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.note {
+  font-size: 0.9em;
+  color: #777;
 }
