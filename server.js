@@ -20,7 +20,9 @@ db.serialize(() => {
     ip TEXT,
     useragent TEXT
   )`);
-  db.run(`INSERT OR IGNORE INTO access_codes (code) VALUES (?)`, ['letmein123']);
+  db.run(`INSERT OR IGNORE INTO access_codes (code) VALUES (?)`, ['key1']);
+  db.run(`INSERT OR IGNORE INTO access_codes (code) VALUES (?)`, ['code2']);
+  db.run(`INSERT OR IGNORE INTO access_codes (code) VALUES (?)`, ['keyandcode1']);
 });
 
 // API to validate
@@ -47,3 +49,18 @@ app.post('/api/validate', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.get('/api/logs', (req, res) => {
+  const adminCode = req.query.admin; // e.g., ?admin=secret123
+
+  if (adminCode !== 'secret123') {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  db.all(`SELECT * FROM access_logs ORDER BY timestamp DESC`, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to fetch logs' });
+    }
+    res.json(rows);
+  });
+});
