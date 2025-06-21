@@ -80,6 +80,43 @@
     });
   </script>
   <script src="main.js"></script>
+  <script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('selectstart', e => e.preventDefault());
+  document.addEventListener('dragstart', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    // Block print screen, dev tools, copy/paste, print
+    if (
+      e.key === 'PrintScreen' ||
+      (e.ctrlKey && ['u', 's', 'p', 'c', 'x', 'a'].includes(e.key.toLowerCase())) ||
+      (e.metaKey && ['u', 's', 'p', 'c', 'x', 'a'].includes(e.key.toLowerCase())) ||
+      (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') // Ctrl+Shift+I (inspect)
+    ) {
+      e.preventDefault();
+    }
+  });
+  </script>
+  <script>
+  document.addEventListener('keydown', e => {
+    if (
+      e.key === 'PrintScreen' ||
+      (e.ctrlKey && e.key.toLowerCase() === 'p')
+    ) {
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = 0;
+      overlay.style.left = 0;
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.background = 'black';
+      overlay.style.opacity = 0.98;
+      overlay.style.zIndex = 999999;
+      document.body.appendChild(overlay);
+      setTimeout(() => document.body.removeChild(overlay), 3000);
+    }
+  });
+  </script>
+  <div id="security-overlay"></div>
   <div id="logout-confirm" class="confirm-popup" style="display: none;">
     <div class="confirm-box">
       <p>Are you sure you want to log out?</p>

@@ -3,6 +3,10 @@ const app = express();
 
 app.use(express.json());
 app.use(express.static('public'));
+app.use((req, res, next) => {
+  res.setHeader("X-Frame-Options", "DENY");
+  next();
+});
 
 const users = {
   "admin": { otp: "admin1", used: false },
