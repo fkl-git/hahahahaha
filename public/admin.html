@@ -77,41 +77,45 @@
   </style>
 </head>
 <body>
+  <!-- Only the admin login box at first -->
   <div id="loginBox">
     <input type="password" id="adminCode" placeholder="Enter admin code" />
     <button onclick="fetchLogs()">View Logs</button>
     <p id="message"></p>
   </div>
 
-  <table id="logsTable" style="display:none;">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Code</th>
-        <th>Timestamp</th>
-        <th>IP</th>
-        <th>User Agent</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  
-  <button onclick="toggleManageOtp()">Manage OTPs</button>
+  <!-- This is hidden until successful admin login -->
+  <div id="adminContent" style="display: none;">
+    <table id="logsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Code</th>
+          <th>Timestamp</th>
+          <th>IP</th>
+          <th>User Agent</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <div id="otpManager" style="display: none; margin-top: 20px;">
-    <h3>Assign OTP to Existing User</h3>
-    <select id="approvedUsersDropdown"></select>
-    <input type="text" id="approvedUserOtp" placeholder="Enter new OTP" />
-    <input type="password" id="approvedAdminCode1" placeholder="Enter Admin Code" />
-    <button onclick="assignOtpToApprovedUser()">Assign OTP</button>
-    <p id="approvedMsg"></p>
+    <button onclick="toggleManageOtp()">Manage OTPs</button>
 
-    <h3>Add New User</h3>
-    <input type="text" id="newUsername" placeholder="Enter new username" />
-    <input type="text" id="newUserOtp" placeholder="Enter OTP" />
-    <input type="password" id="approvedAdminCode2" placeholder="Enter Admin Code" />
-    <button onclick="addNewUser()">Add New User</button>
-    <p id="newUserMsg"></p>
+    <div id="otpManager" style="display: none; margin-top: 20px;">
+      <h3>Assign OTP to Existing User</h3>
+      <select id="approvedUsersDropdown"></select>
+      <input type="text" id="approvedUserOtp" placeholder="Enter new OTP" />
+      <input type="password" id="approvedAdminCode1" placeholder="Enter Admin Code" />
+      <button onclick="assignOtpToApprovedUser()">Assign OTP</button>
+      <p id="approvedMsg"></p>
+
+      <h3>Add New User</h3>
+      <input type="text" id="newUsername" placeholder="Enter new username" />
+      <input type="text" id="newUserOtp" placeholder="Enter OTP" />
+      <input type="password" id="approvedAdminCode2" placeholder="Enter Admin Code" />
+      <button onclick="addNewUser()">Add New User</button>
+      <p id="newUserMsg"></p>
+    </div>
   </div>
 
   <button id="logoutButton" onclick="logout()">Log Out</button>
@@ -119,32 +123,29 @@
   <script>
     async function fetchLogs() {
       const admin = document.getElementById('adminCode').value;
-
-      const res = await fetch(`/api/logs`, {
-        headers: {
-          Authorization: `Bearer ${admin}`
-        }
+      const res = await fetch('/api/logs', {
+        headers: { 'Authorization': `Bearer ${admin}` }
       });
-
-      if (!res.ok) {
-        document.getElementById('message').textContent = 'Unauthorized or error fetching logs';
-        return;
-      }
 
       const data = await res.json();
 
+      if (data.error) {
+        document.getElementById('message').textContent = data.error;
+        return;
+      }
+
       document.getElementById('loginBox').style.display = 'none';
-      document.getElementById('logsTable').style.display = 'table';
+      document.getElementById('adminContent').style.display = 'block';
 
       const tbody = document.querySelector('#logsTable tbody');
       tbody.innerHTML = '';
       data.forEach((log, index) => {
         const row = `<tr>
           <td>${index + 1}</td>
-          <td>${log.username || ''}</td>
+          <td>${log.code}</td>
           <td>${log.timestamp}</td>
-          <td>${log.ip || ''}</td>
-          <td>${log.useragent || ''}</td>
+          <td>${log.ip}</td>
+          <td>${log.useragent}</td>
         </tr>`;
         tbody.innerHTML += row;
       });
