@@ -11,6 +11,7 @@ const users = {
 
 const loginLogs = [];
 
+// 🚀 LOGIN ROUTE
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -30,16 +31,23 @@ app.post('/api/login', (req, res) => {
     return res.json({ success: false, message: "Invalid password" });
   }
 
-  // Success
   users[username].used = true;
   loginLogs.push({ username, timestamp: new Date().toISOString() });
 
   res.json({ success: true, message: "Login successful" });
 });
 
+// 🌟 SECURED LOGS ROUTE
+const ADMIN_SECRET = 'DLSZadmin2024!@#';
+
 app.get('/api/logs', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   res.json(loginLogs);
 });
 
+// START SERVER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
