@@ -15,7 +15,8 @@ const users = {
 
 const loginLogs = [];
 
-// 🚀 LOGIN ROUTE
+const ADMIN_SECRET = 'HKTUWC112';
+
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -46,9 +47,6 @@ app.post('/api/login', (req, res) => {
   res.json({ success: true, message: "Login successful" });
 });
 
-// 🌟 SECURED LOGS ROUTE
-const ADMIN_SECRET = 'HKTUWC112';
-
 app.get('/api/logs', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
@@ -68,8 +66,7 @@ app.post('/api/admin/add-otp', (req, res) => {
     return res.status(400).json({ error: 'Missing username or OTP' });
   }
 
-  // Add or update
-  users[username] = { otp: otp, used: false };
+  users[username] = { otp, used: false };
   res.json({ success: true, message: `OTP added for ${username}` });
 });
 
@@ -82,6 +79,5 @@ app.get('/api/admin/users', (req, res) => {
   res.json(Object.keys(users));
 });
 
-// START SERVER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));

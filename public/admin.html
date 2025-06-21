@@ -4,17 +4,12 @@
   <meta charset="UTF-8" />
   <title>Access Logs</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #eee; }
-    #loginBox { margin-bottom: 20px; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #fff;
       color: #333;
+      padding: 20px;
     }
-
     #loginBox {
       max-width: 300px;
       margin: 100px auto;
@@ -24,15 +19,13 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       text-align: center;
     }
-
-    #adminCode {
+    #adminCode, #approvedUserOtp, #newUsername, #newUserOtp, #approvedAdminCode1, #approvedAdminCode2 {
       width: 90%;
       padding: 10px;
       margin: 10px 0;
       border: 1px solid #ccc;
       border-radius: 8px;
     }
-
     button {
       padding: 10px 20px;
       background: #4CAF50;
@@ -41,56 +34,37 @@
       border-radius: 8px;
       cursor: pointer;
     }
-
-    button:hover {
-      background: #45a049;
-    }
-
+    button:hover { background: #45a049; }
     #logoutButton {
       display: none;
-      padding: 8px 16px;
       background: #f44336;
-      border: none;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
     }
-
-    #logoutButton:hover {
-      background: #da190b;
-    }
-
+    #logoutButton:hover { background: #da190b; }
     table {
       border-collapse: collapse;
       width: 100%;
       margin-top: 20px;
     }
-
     th, td {
       border: 1px solid #ccc;
       padding: 8px;
     }
-
-    th {
-      background: #f5f5f5;
-    }
+    th { background: #f5f5f5; }
   </style>
 </head>
 <body>
-  <!-- Only the admin login box at first -->
   <div id="loginBox">
     <input type="password" id="adminCode" placeholder="Enter admin code" />
     <button onclick="fetchLogs()">View Logs</button>
     <p id="message"></p>
   </div>
 
-  <!-- This is hidden until successful admin login -->
   <div id="adminContent" style="display: none;">
     <table id="logsTable">
       <thead>
         <tr>
           <th>ID</th>
-          <th>Code</th>
+          <th>Username</th>
           <th>Timestamp</th>
           <th>IP</th>
           <th>User Agent</th>
@@ -116,9 +90,9 @@
       <button onclick="addNewUser()">Add New User</button>
       <p id="newUserMsg"></p>
     </div>
-  </div>
 
-  <button id="logoutButton" onclick="logout()">Log Out</button>
+    <button id="logoutButton" onclick="logout()">Log Out</button>
+  </div>
 
   <script>
     async function fetchLogs() {
@@ -136,136 +110,100 @@
 
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('adminContent').style.display = 'block';
+      document.getElementById('logsTable').style.display = 'table';
+      document.getElementById('logoutButton').style.display = 'inline-block';
 
       const tbody = document.querySelector('#logsTable tbody');
       tbody.innerHTML = '';
       data.forEach((log, index) => {
         const row = `<tr>
           <td>${index + 1}</td>
-          <td>${log.code}</td>
+          <td>${log.username || ''}</td>
           <td>${log.timestamp}</td>
-          <td>${log.ip}</td>
-          <td>${log.useragent}</td>
+          <td>${log.ip || ''}</td>
+          <td>${log.useragent || ''}</td>
         </tr>`;
         tbody.innerHTML += row;
-      });
-    }
-    function fetchLogs() {
-      const admin = document.getElementById('adminCode').value;
-
-      fetch(`/api/logs`, {
-        headers: {
-          Authorization: `Bearer ${admin}`
-        }
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('Unauthorized or error fetching logs');
-        return res.json();
-      })
-      .then(data => {
-        document.getElementById('loginBox').style.display = 'none';
-        document.getElementById('logoutButton').style.display = 'inline-block';
-        document.getElementById('logsTable').style.display = 'table';
-
-        const tbody = document.querySelector('#logsTable tbody');
-        tbody.innerHTML = '';
-        data.forEach((log, index) => {
-          const row = `<tr>
-            <td>${index + 1}</td>
-            <td>${log.username || ''}</td>
-            <td>${log.timestamp}</td>
-            <td>${log.ip || ''}</td>
-            <td>${log.useragent || ''}</td>
-          </tr>`;
-          tbody.innerHTML += row;
-        });
-      })
-      .catch(err => {
-        document.getElementById('message').textContent = err.message;
       });
     }
 
     function logout() {
       document.getElementById('loginBox').style.display = 'block';
+      document.getElementById('adminContent').style.display = 'none';
       document.getElementById('logoutButton').style.display = 'none';
-      document.getElementById('logsTable').style.display = 'none';
       document.getElementById('adminCode').value = '';
       document.getElementById('message').textContent = '';
     }
 
-  </script>
-  <script>
-  function toggleManageOtp() {
-    const manager = document.getElementById('otpManager');
-    if (manager.style.display === 'none') {
-      manager.style.display = 'block';
-      loadApprovedUsers();
-    } else {
-      manager.style.display = 'none';
-    }
-  }
-
-  async function loadApprovedUsers() {
-    const code1 = document.getElementById('approvedAdminCode1').value || document.getElementById('approvedAdminCode2').value;
-    const res = await fetch('/api/admin/users', {
-      headers: { 'Authorization': `Bearer ${code1}` }
-    });
-
-    if (!res.ok) {
-      console.log("Failed to load users");
-      return;
+    function toggleManageOtp() {
+      const manager = document.getElementById('otpManager');
+      if (manager.style.display === 'none') {
+        manager.style.display = 'block';
+        loadApprovedUsers();
+      } else {
+        manager.style.display = 'none';
+      }
     }
 
-    const users = await res.json();
-    const dropdown = document.getElementById('approvedUsersDropdown');
-    dropdown.innerHTML = '';
-    users.forEach(u => {
-      const option = document.createElement('option');
-      option.value = u;
-      option.textContent = u;
-      dropdown.appendChild(option);
-    });
-  }
+    async function loadApprovedUsers() {
+      const code = document.getElementById('approvedAdminCode1').value || document.getElementById('approvedAdminCode2').value;
+      const res = await fetch('/api/admin/users', {
+        headers: { 'Authorization': `Bearer ${code}` }
+      });
 
-  async function assignOtpToApprovedUser() {
-    const username = document.getElementById('approvedUsersDropdown').value;
-    const otp = document.getElementById('approvedUserOtp').value;
-    const adminCode = document.getElementById('approvedAdminCode1').value;
+      if (!res.ok) {
+        console.log("Failed to load users");
+        return;
+      }
 
-    const res = await fetch('/api/admin/add-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${adminCode}`
-      },
-      body: JSON.stringify({ username, otp })
-    });
-
-    const data = await res.json();
-    document.getElementById('approvedMsg').textContent = data.message || data.error;
-  }
-
-  async function addNewUser() {
-    const username = document.getElementById('newUsername').value;
-    const otp = document.getElementById('newUserOtp').value;
-    const adminCode = document.getElementById('approvedAdminCode2').value;
-
-    const res = await fetch('/api/admin/add-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${adminCode}`
-      },
-      body: JSON.stringify({ username, otp })
-    });
-
-    const data = await res.json();
-    document.getElementById('newUserMsg').textContent = data.message || data.error;
-
-    if (data.success) {
-      loadApprovedUsers();
+      const users = await res.json();
+      const dropdown = document.getElementById('approvedUsersDropdown');
+      dropdown.innerHTML = '';
+      users.forEach(u => {
+        const option = document.createElement('option');
+        option.value = u;
+        option.textContent = u;
+        dropdown.appendChild(option);
+      });
     }
-  }
+
+    async function assignOtpToApprovedUser() {
+      const username = document.getElementById('approvedUsersDropdown').value;
+      const otp = document.getElementById('approvedUserOtp').value;
+      const adminCode = document.getElementById('approvedAdminCode1').value;
+
+      const res = await fetch('/api/admin/add-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminCode}`
+        },
+        body: JSON.stringify({ username, otp })
+      });
+
+      const data = await res.json();
+      document.getElementById('approvedMsg').textContent = data.message || data.error;
+    }
+
+    async function addNewUser() {
+      const username = document.getElementById('newUsername').value;
+      const otp = document.getElementById('newUserOtp').value;
+      const adminCode = document.getElementById('approvedAdminCode2').value;
+
+      const res = await fetch('/api/admin/add-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminCode}`
+        },
+        body: JSON.stringify({ username, otp })
+      });
+
+      const data = await res.json();
+      document.getElementById('newUserMsg').textContent = data.message || data.error;
+
+      if (data.success) loadApprovedUsers();
+    }
   </script>
 </body>
 </html>
