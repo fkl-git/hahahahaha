@@ -38,7 +38,7 @@ app.post('/api/login', (req, res) => {
 });
 
 // 🌟 SECURED LOGS ROUTE
-const ADMIN_SECRET = 'DLSZadmin2024!@#';
+const ADMIN_SECRET = 'HKTUWC112';
 
 app.get('/api/logs', (req, res) => {
   const auth = req.headers.authorization;
