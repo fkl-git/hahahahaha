@@ -34,26 +34,32 @@
   <script>
     async function fetchLogs() {
       const admin = document.getElementById('adminCode').value;
-      const res = await fetch(`/api/logs?admin=${encodeURIComponent(admin)}`);
-      const data = await res.json();
 
-      if (data.error) {
-        document.getElementById('message').textContent = data.error;
+      const res = await fetch(`/api/logs`, {
+        headers: {
+          Authorization: `Bearer ${admin}`
+        }
+      });
+
+      if (!res.ok) {
+        document.getElementById('message').textContent = 'Unauthorized or error fetching logs';
         return;
       }
+
+      const data = await res.json();
 
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('logsTable').style.display = 'table';
 
       const tbody = document.querySelector('#logsTable tbody');
       tbody.innerHTML = '';
-      data.forEach(log => {
+      data.forEach((log, index) => {
         const row = `<tr>
-          <td>${log.id}</td>
-          <td>${log.code}</td>
+          <td>${index + 1}</td>
+          <td>${log.username || ''}</td>
           <td>${log.timestamp}</td>
-          <td>${log.ip}</td>
-          <td>${log.useragent}</td>
+          <td>${log.ip || ''}</td>
+          <td>${log.useragent || ''}</td>
         </tr>`;
         tbody.innerHTML += row;
       });
