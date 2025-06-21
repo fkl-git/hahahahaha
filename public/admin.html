@@ -83,6 +83,15 @@
     <p id="message"></p>
   </div>
 
+  <button onclick="showOtpForm()">Manage OTPs</button>
+
+  <div id="otpForm" style="display:none;">
+    <input type="text" id="newUsername" placeholder="Username" />
+    <input type="text" id="newOtp" placeholder="One-time password" />
+    <button onclick="addOtp()">Add OTP</button>
+    <p id="otpMsg"></p>
+  </div>
+
   <table id="logsTable" style="display:none;">
     <thead>
       <tr>
@@ -174,6 +183,34 @@
       document.getElementById('message').textContent = '';
     }
 
+  </script>
+  <script>
+  function showOtpForm() {
+    document.getElementById('otpForm').style.display = 'block';
+  }
+
+  async function addOtp() {
+    const username = document.getElementById('newUsername').value;
+    const otp = document.getElementById('newOtp').value;
+    const token = prompt("Enter admin code to confirm:");
+
+    const res = await fetch('/api/admin/add-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ username, otp })
+    });
+
+    const data = await res.json();
+    const msg = document.getElementById('otpMsg');
+    if (data.success) {
+      msg.textContent = data.message;
+    } else {
+      msg.textContent = data.error || "Something went wrong";
+    }
+  }
   </script>
 </body>
 </html>
