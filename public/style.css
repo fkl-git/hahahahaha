@@ -258,7 +258,7 @@ header {
 }
 
 body::after {
-  content: "YOU ARE TRACED WITH THIS SCREENSHOT";
+  content: "CONFIDENTIAL - DO NOT DISTRIBUTE";
   position: fixed;
   top: 50%;
   left: 50%;
@@ -270,12 +270,25 @@ body::after {
   white-space: nowrap;
 }
 
-#security-overlay {
-  position: fixed;
-  top: 0; 
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  z-index: 9999;
+body {
+  user-select: none;
+}
+
+input, textarea, button {
+  user-select: text; /* Allow selecting inside inputs/buttons */
+}
+
+body {
+  user-select: none; /* Disable selection everywhere by default */
+}
+
+/* Allow selecting text inside form controls (so typing + copy in input works fine) */
+input, textarea, button {
+  user-select: text;
+}
+
+/* Allow interacting with links (click + copy the link if they want) */
+a {
+  user-select: text;
+  pointer-events: auto; /* Ensure links stay clickable */
 }
