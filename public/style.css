@@ -257,19 +257,6 @@ header {
   opacity: 1;
 }
 
-body::after {
-  content: "CONFIDENTIAL - DO NOT DISTRIBUTE";
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  font-size: 48px;
-  color: rgba(0,0,0,0.05);
-  transform: translate(-50%, -50%) rotate(-30deg);
-  pointer-events: none;
-  z-index: 99999;
-  white-space: nowrap;
-}
-
 body {
   user-select: none;
 }
