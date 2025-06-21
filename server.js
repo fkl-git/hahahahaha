@@ -3,10 +3,6 @@ const app = express();
 
 app.use(express.json());
 app.use(express.static('public'));
-app.use((req, res, next) => {
-  res.setHeader("X-Frame-Options", "DENY");
-  next();
-});
 
 const users = {
   "admin": { otp: "admin1", used: false },
@@ -14,7 +10,6 @@ const users = {
 };
 
 const loginLogs = [];
-
 const ADMIN_SECRET = 'HKTUWC112';
 
 app.post('/api/login', (req, res) => {
@@ -55,6 +50,15 @@ app.get('/api/logs', (req, res) => {
   res.json(loginLogs);
 });
 
+app.get('/api/admin/users', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  res.json(Object.keys(users));
+});
+
 app.post('/api/admin/add-otp', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
@@ -68,15 +72,6 @@ app.post('/api/admin/add-otp', (req, res) => {
 
   users[username] = { otp, used: false };
   res.json({ success: true, message: `OTP added for ${username}` });
-});
-
-app.get('/api/admin/users', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  res.json(Object.keys(users));
 });
 
 const PORT = process.env.PORT || 3000;
