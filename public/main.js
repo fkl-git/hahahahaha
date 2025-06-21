@@ -24,6 +24,7 @@ window.onload = function() {
       document.getElementById('username').value = '';
       document.getElementById('password').value = '';
       document.getElementById('message').textContent = '';
+      document.getElementById('userNameMark').textContent = '';
     });
   }
 };
@@ -49,6 +50,7 @@ async function login() {
     const logoutBtn = document.getElementById('logout-button');
     logoutBtn.style.display = 'inline-flex';
     setTimeout(() => logoutBtn.classList.add('show'), 10); // trigger smooth fade
+    document.getElementById('userNameMark').textContent = username;
   } else {
     message.textContent = data.message;
   }

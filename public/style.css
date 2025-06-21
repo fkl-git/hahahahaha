@@ -292,3 +292,15 @@ a {
   user-select: text;
   pointer-events: auto; /* Ensure links stay clickable */
 }
+
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 3em;
+  color: rgba(0, 0, 0, 0.1); /* subtle, semi-transparent */
+  pointer-events: none; /* does not block clicking/typing */
+  z-index: 9999;
+  white-space: nowrap;
+}
