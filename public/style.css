@@ -1,27 +1,21 @@
 body {
-  background: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: #333;
   margin: 0;
-  padding: 20px;
-}
-
-.container {
-  max-width: 800px;
-  margin: auto;
-}
-
-.card {
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  padding: 20px;
-  margin-bottom: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: #fff;
+  color: #333;
+  transition: background 0.3s, color 0.3s;
 }
 
-h2 {
-  margin-top: 0;
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+}
+
+h1 {
+  font-size: 1.5em;
+  margin: 0;
 }
 
 a {
@@ -33,13 +27,233 @@ a:hover {
   text-decoration: underline;
 }
 
-code {
-  background: #f7f7f7;
-  padding: 2px 4px;
-  border-radius: 4px;
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.note {
+.toggle-switch {
+  width: 50px;
+  height: 24px;
+  background: #ccc;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.toggle-slider {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: left 0.3s;
+}
+
+.toggle-switch.active {
+  background: #007aff;
+}
+
+.toggle-switch.active .toggle-slider {
+  left: 28px;
+}
+
+.grid-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+}
+
+.card {
+  flex: 1 1 250px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 16px;
+}
+
+.subtext {
   font-size: 0.9em;
   color: #777;
 }
+
+/* Dark mode */
+body.dark-mode {
+  background: #121212;
+  color: #eee;
+}
+
+body.dark-mode .card {
+  background: #1e1e1e;
+  border-color: #333;
+}
+
+body.dark-mode a {
+  color: #90caf9;
+}
+
+body.dark-mode .subtext {
+  color: #bbb;
+}
+
+.login-card {
+  max-width: 300px;
+  margin: 100px auto;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+.login-card h2 {
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.login-input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.login-input:focus {
+  border-color: #007aff;
+  outline: none;
+  box-shadow: 0 0 4px rgba(0, 122, 255, 0.4);
+}
+
+.login-button {
+  width: 100%;
+  padding: 10px 0;
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-button:hover {
+  background: #005bb5;
+}
+
+.login-message {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #f44336; /* red for error */
+}
+
+/* Dark mode support */
+body.dark-mode .login-card {
+  background: #1e1e1e;
+  border-color: #333;
+}
+
+body.dark-mode .login-input {
+  background: #333;
+  border-color: #555;
+  color: #eee;
+}
+
+body.dark-mode .login-button {
+  background: #90caf9;
+  color: #000;
+}
+
+body.dark-mode .login-button:hover {
+  background: #64b5f6;
+}
+
+.logout-button {
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 999px; /* pill shape like toggle */
+  padding: 6px 12px;
+  font-size: 1em;
+  cursor: pointer;
+  height: 32px; /* match toggle height */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.logout-button:hover {
+  background: #d32f2f;
+}
+
+.confirm-popup {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirm-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.confirm-yes, .confirm-no {
+  margin: 5px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.confirm-yes {
+  background: #007aff;
+  color: white;
+}
+
+.confirm-no {
+  background: #ccc;
+}
+
+
+body.dark-mode .confirm-box {
+  background: #1e1e1e;
+  color: #eee;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout-button {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.logout-button.show {
+  opacity: 1;
+}
+
