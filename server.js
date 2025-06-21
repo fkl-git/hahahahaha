@@ -68,8 +68,18 @@ app.post('/api/admin/add-otp', (req, res) => {
     return res.status(400).json({ error: 'Missing username or OTP' });
   }
 
+  // Add or update
   users[username] = { otp: otp, used: false };
   res.json({ success: true, message: `OTP added for ${username}` });
+});
+
+app.get('/api/admin/users', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  res.json(Object.keys(users));
 });
 
 // START SERVER

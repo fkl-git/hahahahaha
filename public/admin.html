@@ -83,13 +83,22 @@
     <p id="message"></p>
   </div>
 
-  <button onclick="showOtpForm()">Manage OTPs</button>
+  <button onclick="toggleManageOtp()">Manage OTPs</button>
 
-  <div id="otpForm" style="display:none;">
-    <input type="text" id="newUsername" placeholder="Username" />
-    <input type="text" id="newOtp" placeholder="One-time password" />
-    <button onclick="addOtp()">Add OTP</button>
-    <p id="otpMsg"></p>
+  <div id="otpManager" style="display: none; margin-top: 20px;">
+    <button onclick="closeManageOtp()">Close</button>
+
+    <h3>Assign OTP to Existing User</h3>
+    <select id="approvedUsersDropdown"></select>
+    <input type="text" id="approvedUserOtp" placeholder="Enter new OTP" />
+    <button onclick="assignOtpToApprovedUser()">Assign OTP</button>
+    <p id="approvedMsg"></p>
+
+    <h3>Add New User</h3>
+    <input type="text" id="newUsername" placeholder="Enter new username" />
+    <input type="text" id="newUserOtp" placeholder="Enter OTP" />
+    <button onclick="addNewUser()">Add New User</button>
+    <p id="newUserMsg"></p>
   </div>
 
   <table id="logsTable" style="display:none;">
@@ -209,6 +218,77 @@
       msg.textContent = data.message;
     } else {
       msg.textContent = data.error || "Something went wrong";
+    }
+  }
+  </script>
+  <script>
+  const adminToken = prompt("Enter admin code:");
+
+  function toggleManageOtp() {
+    const manager = document.getElementById('otpManager');
+    if (manager.style.display === 'none') {
+      manager.style.display = 'block';
+      loadApprovedUsers();
+    } else {
+      manager.style.display = 'none';
+    }
+  }
+
+  function closeManageOtp() {
+    document.getElementById('otpManager').style.display = 'none';
+  }
+
+  async function loadApprovedUsers() {
+    const res = await fetch('/api/admin/users', {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    const users = await res.json();
+
+    const dropdown = document.getElementById('approvedUsersDropdown');
+    dropdown.innerHTML = '';
+    users.forEach(u => {
+      const option = document.createElement('option');
+      option.value = u;
+      option.textContent = u;
+      dropdown.appendChild(option);
+    });
+  }
+
+  async function assignOtpToApprovedUser() {
+    const username = document.getElementById('approvedUsersDropdown').value;
+    const otp = document.getElementById('approvedUserOtp').value;
+
+    const res = await fetch('/api/admin/add-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ username, otp })
+    });
+
+    const data = await res.json();
+    document.getElementById('approvedMsg').textContent = data.message || data.error;
+  }
+
+  async function addNewUser() {
+    const username = document.getElementById('newUsername').value;
+    const otp = document.getElementById('newUserOtp').value;
+
+    const res = await fetch('/api/admin/add-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ username, otp })
+    });
+
+    const data = await res.json();
+    document.getElementById('newUserMsg').textContent = data.message || data.error;
+
+    if (data.success) {
+      loadApprovedUsers(); // refresh dropdown
     }
   }
   </script>
