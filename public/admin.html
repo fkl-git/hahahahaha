@@ -135,20 +135,22 @@
       document.getElementById('message').textContent = '';
     }
 
-    function toggleManageOtp() {
-      const manager = document.getElementById('otpManager');
-      if (manager.style.display === 'none') {
-        manager.style.display = 'block';
-        loadApprovedUsers();
-      } else {
-        manager.style.display = 'none';
+      function toggleManageOtp() {
+        const manager = document.getElementById('otpManager');
+        if (manager.style.display === 'none') {
+          manager.style.display = 'block';
+          // Use the adminCode value from the original login
+          const adminCode = document.getElementById('adminCode').value;
+          loadApprovedUsers(adminCode);
+        } else {
+          manager.style.display = 'none';
+        }
       }
     }
 
-    async function loadApprovedUsers() {
-      const code = document.getElementById('approvedAdminCode1').value || document.getElementById('approvedAdminCode2').value;
+    async function loadApprovedUsers(adminCode) {
       const res = await fetch('/api/admin/users', {
-        headers: { 'Authorization': `Bearer ${code}` }
+        headers: { 'Authorization': `Bearer ${adminCode}` }
       });
 
       if (!res.ok) {
@@ -202,7 +204,10 @@
       const data = await res.json();
       document.getElementById('newUserMsg').textContent = data.message || data.error;
 
-      if (data.success) loadApprovedUsers();
+      if (data.success) {
+        const adminCode = document.getElementById('approvedAdminCode2').value;
+        loadApprovedUsers(adminCode);
+      }
     }
   </script>
 </body>
