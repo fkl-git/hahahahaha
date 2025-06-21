@@ -291,31 +291,3 @@ a {
   z-index: 9999;
   white-space: nowrap;
 }
-
-#user-info-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #f5f5f5;
-  border-top: 1px solid #ccc;
-  transition: max-height 0.3s ease;
-  overflow: hidden;
-  max-height: 30px; /* collapsed height */
-  font-size: 0.9em;
-}
-
-#user-info-bar.expanded {
-  max-height: 200px; /* expanded height */
-}
-
-#user-info-toggle {
-  text-align: center;
-  cursor: pointer;
-  background: #ddd;
-  padding: 5px;
-}
-
-#user-info-content {
-  padding: 10px;
-}
