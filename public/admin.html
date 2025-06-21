@@ -9,6 +9,71 @@
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background: #eee; }
     #loginBox { margin-bottom: 20px; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fff;
+      color: #333;
+    }
+
+    #loginBox {
+      max-width: 300px;
+      margin: 100px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+
+    #adminCode {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #4CAF50;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    #logoutButton {
+      display: none;
+      padding: 8px 16px;
+      background: #f44336;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #logoutButton:hover {
+      background: #da190b;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+
+    th {
+      background: #f5f5f5;
+    }
   </style>
 </head>
 <body>
@@ -30,6 +95,8 @@
     </thead>
     <tbody></tbody>
   </table>
+  
+  <button id="logoutButton" onclick="logout()">Log Out</button>
 
   <script>
     async function fetchLogs() {
@@ -64,6 +131,49 @@
         tbody.innerHTML += row;
       });
     }
+    function fetchLogs() {
+      const admin = document.getElementById('adminCode').value;
+
+      fetch(`/api/logs`, {
+        headers: {
+          Authorization: `Bearer ${admin}`
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Unauthorized or error fetching logs');
+        return res.json();
+      })
+      .then(data => {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('logoutButton').style.display = 'inline-block';
+        document.getElementById('logsTable').style.display = 'table';
+
+        const tbody = document.querySelector('#logsTable tbody');
+        tbody.innerHTML = '';
+        data.forEach((log, index) => {
+          const row = `<tr>
+            <td>${index + 1}</td>
+            <td>${log.username || ''}</td>
+            <td>${log.timestamp}</td>
+            <td>${log.ip || ''}</td>
+            <td>${log.useragent || ''}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+      })
+      .catch(err => {
+        document.getElementById('message').textContent = err.message;
+      });
+    }
+
+    function logout() {
+      document.getElementById('loginBox').style.display = 'block';
+      document.getElementById('logoutButton').style.display = 'none';
+      document.getElementById('logsTable').style.display = 'none';
+      document.getElementById('adminCode').value = '';
+      document.getElementById('message').textContent = '';
+    }
+
   </script>
 </body>
 </html>

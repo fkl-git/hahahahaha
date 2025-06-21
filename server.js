@@ -32,7 +32,12 @@ app.post('/api/login', (req, res) => {
   }
 
   users[username].used = true;
-  loginLogs.push({ username, timestamp: new Date().toISOString() });
+  loginLogs.push({
+    username,
+    timestamp: new Date().toISOString(),
+    ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+    useragent: req.headers['user-agent']
+  });
 
   res.json({ success: true, message: "Login successful" });
 });
