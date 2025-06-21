@@ -57,12 +57,6 @@ app.get('/api/logs', (req, res) => {
   res.json(loginLogs);
 });
 
-// START SERVER
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-
-const ADMIN_SECRET = 'HKTUWC112';  // already in your code
-
 app.post('/api/admin/add-otp', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
@@ -77,3 +71,7 @@ app.post('/api/admin/add-otp', (req, res) => {
   users[username] = { otp: otp, used: false };
   res.json({ success: true, message: `OTP added for ${username}` });
 });
+
+// START SERVER
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
