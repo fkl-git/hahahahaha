@@ -47,7 +47,6 @@ window.onload = function () {
     document.getElementById('userNameMark').innerText = '';
     document.getElementById('logout-confirm').style.display = 'none';
   });
-};
 
 async function login() {
   const username = document.getElementById('username').value;
