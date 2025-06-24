@@ -17,12 +17,11 @@
       </div>
       <button id="logout-button" class="logout-button" style="display: none;">🚪 Log Out</button>
     </div>
-    <div id="hamburger" class="hamburger">☰</div>
+    <div id="hamburger" class="hamburger" style="display: none;">☰</div>
     <div id="sideMenu" class="side-menu">
       <button class="close-btn" onclick="closeMenu()">×</button>
       <h2>📌 Tools</h2>
       <button onclick="showCitationGenerator()">📝 Citation Generator</button>
-      <!-- Add more tool buttons here -->
       <div id="toolContent" style="margin-top: 20px;"></div>
     </div>
   </header>
@@ -125,7 +124,6 @@
     }
   });
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/citation-js/0.5.0/citation.min.js"></script>
   <div id="logout-confirm" class="confirm-popup" style="display: none;">
     <div class="confirm-box">
       <p>Are you sure you want to log out?</p>

@@ -90,3 +90,21 @@ function showCitationGenerator() {
     <div id="cita-output" class="login-message" style="margin-top: 10px; text-align: left;"></div>
   `;
 }
+
+function generateCitations() {
+  const author = document.getElementById('cita-author').value;
+  const title = document.getElementById('cita-title').value;
+  const publisher = document.getElementById('cita-pub').value;
+  const year = document.getElementById('cita-year').value;
+  const url = document.getElementById('cita-url').value;
+
+  const apa = `${author}. (${year}). *${title}*. ${publisher}. ${url}`;
+  const mla = `${author}. *${title}*. ${publisher}, ${year}, ${url}`;
+  const harvard = `${author} (${year}) *${title}*. ${publisher}. Available at: ${url}`;
+
+  document.getElementById('cita-output').innerHTML = `
+    <strong>APA 7th:</strong><br>${apa}<br><br>
+    <strong>MLA:</strong><br>${mla}<br><br>
+    <strong>Harvard:</strong><br>${harvard}
+  `;
+}
