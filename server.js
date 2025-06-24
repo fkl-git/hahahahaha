@@ -14,7 +14,9 @@ const ADMIN_SECRET = 'HKTUWC112';
 
 const users = {
   "admin": { otp: "admin1", used: false },
-  "studentA": { otp: "stuA123", used: false }
+  "studentA": { otp: "stuA123", used: false },
+  "ilovemybf123": { otp: "wya12c", used: false },
+  "fkl.kael": { otp: "joshmichael", used: false }
 };
 
 // Load existing logs from file if present
