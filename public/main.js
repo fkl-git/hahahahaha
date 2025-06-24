@@ -69,3 +69,24 @@
       document.getElementById('logout-confirm').style.display = 'none';
     });
   };
+
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('sideMenu').style.right = '0';
+});
+
+function closeMenu() {
+  document.getElementById('sideMenu').style.right = '-300px';
+}
+
+function showCitationGenerator() {
+  document.getElementById('toolContent').innerHTML = `
+    <h3>📝 Citation Generator</h3>
+    <input type="text" id="cita-author" placeholder="Author (e.g. John Doe)" class="login-input" />
+    <input type="text" id="cita-title" placeholder="Title (e.g. The Science of AI)" class="login-input" />
+    <input type="text" id="cita-pub" placeholder="Publisher" class="login-input" />
+    <input type="text" id="cita-year" placeholder="Year (e.g. 2023)" class="login-input" />
+    <input type="text" id="cita-url" placeholder="URL (if online)" class="login-input" />
+    <button onclick="generateCitations()" class="login-button">Generate Citations</button>
+    <div id="cita-output" class="login-message" style="margin-top: 10px; text-align: left;"></div>
+  `;
+}
