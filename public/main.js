@@ -58,15 +58,15 @@ async function login() {
 
   const data = await res.json();
 
-if (data.success) {
-  currentUsername = username;
-  document.getElementById('login-container').style.display = 'none';
-  document.getElementById('content-container').style.display = 'block';
+  if (data.success) {
+    currentUsername = username;
+    document.getElementById('login-container').style.display = 'none';
+    document.getElementById('content-container').style.display = 'block';
 
-  const logoutBtn = document.getElementById('logout-button');
-  logoutBtn.style.display = 'inline-block';
-  logoutBtn.style.visibility = 'visible';  // <-- Force visible
-  logoutBtn.style.opacity = '1';           // <-- Ensure not transparent
+    const logoutBtn = document.getElementById('logout-button');
+    logoutBtn.style.display = 'inline-flex';  // make visible
 
-  document.getElementById('userNameMark').innerText = username;
-}
+    document.getElementById('userNameMark').innerText = username;
+  } else {
+    document.getElementById('message').textContent = data.message;
+  }
