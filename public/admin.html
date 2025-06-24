@@ -66,7 +66,9 @@
         <tr>
           <th>ID</th>
           <th>Username</th>
-          <th>Timestamp</th>
+          <th>Time In</th>
+          <th>Time Out</th>
+          <th>Duration</th>
           <th>IP</th>
           <th>User Agent</th>
         </tr>
@@ -122,7 +124,9 @@
         const row = `<tr>
           <td>${index + 1}</td>
           <td>${log.username || ''}</td>
-          <td>${log.timestamp}</td>
+          <td>${log.timeIn || ''}</td>
+          <td>${log.timeOut || 'Active'}</td>
+          <td>${log.duration || 'Active'}</td>
           <td>${log.ip || ''}</td>
           <td>${log.useragent || ''}</td>
         </tr>`;
