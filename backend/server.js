@@ -166,7 +166,7 @@ app.post('/api/admin/resource', (req, res) => {
     }
 
     const resources = JSON.parse(data);
-    const newResource = { title, url, subtext };
+    const newResource = { id: Date.now(), title, url, subtext };
 
     // 4. Add the new resource to the correct category
     if (resources[category]) {
@@ -186,6 +186,54 @@ app.post('/api/admin/resource', (req, res) => {
 
       // 6. Send a success message
       res.json({ success: true, message: `Resource '${title}' added successfully!` });
+    });
+  });
+});
+
+// In server.js
+
+// DELETE A SINGLE RESOURCE (ADMIN)
+app.delete('/api/admin/resource', (req, res) => {
+  // 1. Authenticate
+  const auth = req.headers.authorization;
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // 2. Get data from the request
+  const { category, id } = req.body;
+  if (!category || !id) {
+    return res.status(400).json({ error: 'Missing category or resource ID' });
+  }
+
+  const resourceFile = __dirname + '/resources.json';
+
+  // 3. Read the file
+  fs.readFile(resourceFile, 'utf8', (err, data) => {
+    if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
+
+    const resources = JSON.parse(data);
+
+    // 4. Find and remove the resource
+    if (!resources[category]) {
+      return res.status(404).json({ error: 'Category not found.' });
+    }
+
+    // Find the index of the resource to delete
+    const indexToDelete = resources[category].findIndex(resource => resource.id === id);
+
+    if (indexToDelete > -1) {
+      // Remove the item from the array
+      resources[category].splice(indexToDelete, 1);
+    } else {
+      return res.status(404).json({ error: 'Resource ID not found in this category.' });
+    }
+
+    // 5. Write the updated data back to the file
+    fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
+      if (writeErr) return res.status(500).json({ error: 'Failed to save updated resources.' });
+
+      res.json({ success: true, message: 'Resource deleted successfully!' });
     });
   });
 });
