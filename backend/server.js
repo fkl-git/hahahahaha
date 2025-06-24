@@ -125,5 +125,20 @@ app.get('/api/admin/users', (req, res) => {
   res.json(Object.keys(users));
 });
 
+// GET ALL RESOURCES
+app.get('/api/resources', (req, res) => {
+  // We use 'fs' (File System module) which you already have.
+  fs.readFile('resources.json', 'utf8', (err, data) => {
+    // Basic error handling
+    if (err) {
+      console.error("Error reading resources.json:", err);
+      // Send an error message back to the client
+      return res.status(500).json({ error: 'Could not load resources.' });
+    }
+    // If successful, parse the file content and send it as a JSON response
+    res.json(JSON.parse(data));
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
