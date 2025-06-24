@@ -103,14 +103,16 @@ body.dark-mode .subtext {
 }
 
 .login-card {
-  max-width: 300px;
-  margin: 100px auto;
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-  text-align: center;
+max-width: 300px;
+margin: 100px auto;
+padding: 20px;
+background: #fff;
+border: 1px solid #e0e0e0;
+border-radius: 12px;
+box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+text-align: center;
+  position: relative; /* ADD THIS LINE */
+  z-index: 1;         /* ADD THIS LINE (or any value higher than the watermark) */
 }
 
 .login-card h2 {
@@ -272,13 +274,14 @@ a {
 }
 
 .watermark {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-30deg);
-  font-size: 3em;
-  color: rgba(0, 0, 0, 0.1); /* subtle, semi-transparent */
-  pointer-events: none; /* does not block clicking/typing */
-  z-index: 9999;
-  white-space: nowrap;
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%) rotate(-30deg);
+font-size: 3em;
+color: rgba(0, 0, 0, 0.1); 
+pointer-events: none; 
+z-index: -1; /* MODIFIED: Set to -1 to place it behind other content */
+white-space: nowrap;
 }
+
