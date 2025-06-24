@@ -96,121 +96,152 @@
   </div>
 
   <script>
-    let currentAdminCode = '';
+  let currentAdminCode = '';
 
-    async function fetchLogs() {
-      const adminCode = document.getElementById('adminCode').value;
-      currentAdminCode = adminCode;
+  async function fetchLogs() {
+    const adminCode = document.getElementById('adminCode').value || currentAdminCode;
+    currentAdminCode = adminCode;
 
-      const res = await fetch('/api/logs', {
-        headers: { 'Authorization': `Bearer ${adminCode}` }
-      });
+    const res = await fetch('/api/logs', {
+      headers: { 'Authorization': `Bearer ${adminCode}` }
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (data.error) {
-        document.getElementById('message').textContent = data.error;
-        return;
-      }
-
-      document.getElementById('loginBox').style.display = 'none';
-      document.getElementById('adminContent').style.display = 'block';
-      document.getElementById('logsTable').style.display = 'table';
-      document.getElementById('logoutButton').style.display = 'inline-block';
-
-      const tbody = document.querySelector('#logsTable tbody');
-      tbody.innerHTML = '';
-      data.forEach((log, index) => {
-        const row = `<tr>
-          <td>${index + 1}</td>
-          <td>${log.username || ''}</td>
-          <td>${log.timeIn || ''}</td>
-          <td>${log.timeOut || 'Active'}</td>
-          <td>${log.duration || 'Active'}</td>
-          <td>${log.ip || ''}</td>
-          <td>${log.useragent || ''}</td>
-        </tr>`;
-        tbody.innerHTML += row;
-      });
+    if (data.error) {
+      document.getElementById('message').textContent = data.error;
+      return;
     }
 
-    function logout() {
-      document.getElementById('loginBox').style.display = 'block';
-      document.getElementById('adminContent').style.display = 'none';
-      document.getElementById('logoutButton').style.display = 'none';
-      document.getElementById('adminCode').value = '';
-      document.getElementById('message').textContent = '';
-      currentAdminCode = '';
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('adminContent').style.display = 'block';
+    document.getElementById('logoutButton').style.display = 'inline-block';
+
+    const tbody = document.querySelector('#logsTable tbody');
+    tbody.innerHTML = '';
+    data.forEach((log, index) => {
+      const row = `<tr>
+        <td>${index + 1}</td>
+        <td>${log.username || ''}</td>
+        <td>${log.timeIn || ''}</td>
+        <td>${log.timeOut || 'Active'}</td>
+        <td>${log.duration || 'Active'}</td>
+        <td>${log.ip || ''}</td>
+        <td>${log.useragent || ''}</td>
+      </tr>`;
+      tbody.innerHTML += row;
+    });
+  }
+
+  async function logout() {
+    // Get active username for logout (optional: you could track who is logged in)
+    const username = prompt("Enter username to log out:");
+
+    if (!username) {
+      alert("No username provided.");
+      return;
     }
 
-    function toggleManageOtp() {
-      const manager = document.getElementById('otpManager');
-      if (manager.style.display === 'none') {
-        manager.style.display = 'block';
-        loadApprovedUsers();
-      } else {
-        manager.style.display = 'none';
-      }
+    const res = await fetch('/api/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Logout recorded");
+    } else {
+      alert(data.message || "Logout failed");
     }
 
-    async function loadApprovedUsers() {
-      const res = await fetch('/api/admin/users', {
-        headers: { 'Authorization': `Bearer ${currentAdminCode}` }
-      });
+    // Immediately refresh logs
+    fetchLogs();
 
-      if (!res.ok) {
-        console.log("Failed to load users");
-        return;
-      }
+    document.getElementById('loginBox').style.display = 'block';
+    document.getElementById('adminContent').style.display = 'none';
+    document.getElementById('logoutButton').style.display = 'none';
+    document.getElementById('adminCode').value = '';
+    document.getElementById('message').textContent = '';
+    currentAdminCode = '';
+  }
 
-      const users = await res.json();
-      const dropdown = document.getElementById('approvedUsersDropdown');
-      dropdown.innerHTML = '';
-      users.forEach(u => {
-        const option = document.createElement('option');
-        option.value = u;
-        option.textContent = u;
-        dropdown.appendChild(option);
-      });
+  function toggleManageOtp() {
+    const manager = document.getElementById('otpManager');
+    if (manager.style.display === 'none') {
+      manager.style.display = 'block';
+      loadApprovedUsers();
+    } else {
+      manager.style.display = 'none';
+    }
+  }
+
+  async function loadApprovedUsers() {
+    const res = await fetch('/api/admin/users', {
+      headers: { 'Authorization': `Bearer ${currentAdminCode}` }
+    });
+
+    if (!res.ok) {
+      console.log("Failed to load users");
+      return;
     }
 
-    async function assignOtpToApprovedUser() {
-      const username = document.getElementById('approvedUsersDropdown').value;
-      const otp = document.getElementById('approvedUserOtp').value;
+    const users = await res.json();
+    const dropdown = document.getElementById('approvedUsersDropdown');
+    dropdown.innerHTML = '';
+    users.forEach(u => {
+      const option = document.createElement('option');
+      option.value = u;
+      option.textContent = u;
+      dropdown.appendChild(option);
+    });
+  }
 
-      const res = await fetch('/api/admin/add-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentAdminCode}`
-        },
-        body: JSON.stringify({ username, otp })
-      });
+  async function assignOtpToApprovedUser() {
+    const username = document.getElementById('approvedUsersDropdown').value;
+    const otp = document.getElementById('approvedUserOtp').value;
 
-      const data = await res.json();
-      document.getElementById('approvedMsg').textContent = data.message || data.error;
+    const res = await fetch('/api/admin/add-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentAdminCode}`
+      },
+      body: JSON.stringify({ username, otp })
+    });
+
+    const data = await res.json();
+    document.getElementById('approvedMsg').textContent = data.message || data.error;
+  }
+
+  async function addNewUser() {
+    const username = document.getElementById('newUsername').value;
+    const otp = document.getElementById('newUserOtp').value;
+
+    const res = await fetch('/api/admin/add-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentAdminCode}`
+      },
+      body: JSON.stringify({ username, otp })
+    });
+
+    const data = await res.json();
+    document.getElementById('newUserMsg').textContent = data.message || data.error;
+
+    if (data.success) {
+      loadApprovedUsers();
     }
+  }
 
-    async function addNewUser() {
-      const username = document.getElementById('newUsername').value;
-      const otp = document.getElementById('newUserOtp').value;
-
-      const res = await fetch('/api/admin/add-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${currentAdminCode}`
-        },
-        body: JSON.stringify({ username, otp })
-      });
-
-      const data = await res.json();
-      document.getElementById('newUserMsg').textContent = data.message || data.error;
-
-      if (data.success) {
-        loadApprovedUsers();
-      }
+  // Auto-refresh logs every 5 sec when admin is logged in
+  setInterval(() => {
+    if (currentAdminCode) {
+      fetchLogs();
     }
+  }, 5000);
   </script>
 </body>
 </html>
