@@ -128,7 +128,7 @@ app.get('/api/admin/users', (req, res) => {
 // GET ALL RESOURCES
 app.get('/api/resources', (req, res) => {
   // We use 'fs' (File System module) which you already have.
-  fs.readFile('resources.json', 'utf8', (err, data) => {
+    fs.readFile(__dirname + '/resources.json', 'utf8', (err, data) => {
     // Basic error handling
     if (err) {
       console.error("Error reading resources.json:", err);
