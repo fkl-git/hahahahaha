@@ -133,32 +133,8 @@
     });
   }
 
-  async function logout() {
-    // Get active username for logout (optional: you could track who is logged in)
-    const username = prompt("Enter username to log out:");
-
-    if (!username) {
-      alert("No username provided.");
-      return;
-    }
-
-    const res = await fetch('/api/logout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      alert("Logout recorded");
-    } else {
-      alert(data.message || "Logout failed");
-    }
-
-    // Immediately refresh logs
-    fetchLogs();
-
+  function logout() {
+    // This only logs out the admin from viewing the logs
     document.getElementById('loginBox').style.display = 'block';
     document.getElementById('adminContent').style.display = 'none';
     document.getElementById('logoutButton').style.display = 'none';
