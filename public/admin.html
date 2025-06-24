@@ -50,6 +50,16 @@
       padding: 8px;
     }
     th { background: #f5f5f5; }
+    .flex-container {
+      display: flex;
+      align-items: center; /* This vertically aligns everything in the middle */
+      gap: 10px; /* This adds a bit of space between items */
+      padding: 8px 0;
+    }
+
+    .flex-grow {
+      flex-grow: 1; /* This makes the element take up all available space */
+    }
   </style>
 </head>
 <body>
@@ -293,28 +303,28 @@
       });
       dropdown.innerHTML += '<option value="--new--">-- Add New Category --</option>';
 
-      // The logic to build the list of resources gets updated here
+      // The logic to build the list is updated for a clean layout
       let html = '';
       for (const categoryName in resourceCategories) {
-        html += `<div style="padding:10px; border:1px solid #eee; margin-bottom:10px;">`;
+        html += `<div class="resource-category-group" style="padding:10px; border:1px solid #eee; margin-bottom:10px;">`;
 
-        // THE FIRST CHANGE IS HERE: Add a checkbox for the entire category
-        html += `<h4>
-                  <input type="checkbox" name="category-checkbox" value="${categoryName}" style="margin-right: 10px;">
-                  ${categoryName} 
-                  <button onclick="deleteCategory('${categoryName}')" style="background:#800000; color:white; font-size:0.8em;">Delete Entire Category</button>
-                </h4>`;
+        // MODIFIED: No checkbox here anymore, and we use flexbox for alignment.
+        html += `
+          <div class="flex-container">
+            <h4 class="flex-grow">${categoryName}</h4>
+            <button onclick="deleteCategory('${categoryName}')" style="background:#800000; color:white; font-size:0.8em;">Delete Entire Category</button>
+          </div>
+        `;
 
         const links = resourceCategories[categoryName];
         links.forEach(link => {
-          // THE SECOND CHANGE IS HERE: Add a checkbox for each individual resource
-          // We cleverly pack the category and ID into the value attribute for later use.
+          // MODIFIED: The resource row now also uses flexbox for a clean layout.
           html += `
-            <p style="border-bottom: 1px solid #f0f0f0; padding-bottom: 5px;">
-              <input type="checkbox" name="resource-checkbox" value="${categoryName}:::${link.id}" style="margin-right: 10px;">
-              ${link.title}
-              <button onclick="deleteResource('${categoryName}', ${link.id})" style="float:right; background:#f44336;">Delete</button>
-            </p>
+            <div class="flex-container" style="border-top: 1px solid #f0f0f0;">
+              <input type="checkbox" name="resource-checkbox" value="${categoryName}:::${link.id}">
+              <span class="flex-grow">${link.title}</span>
+              <button onclick="deleteResource('${categoryName}', ${link.id})" style="background:#f44336;">Delete</button>
+            </div>
           `;
         });
         html += `</div>`;
@@ -379,67 +389,43 @@
     }
 
     async function deleteSelectedItems() {
-      // 1. GATHER DATA FROM CHECKBOXES
-
-      // Find all checked category checkboxes
-      const checkedCategories = document.querySelectorAll('input[name="category-checkbox"]:checked');
       // Find all checked resource checkboxes
       const checkedResources = document.querySelectorAll('input[name="resource-checkbox"]:checked');
 
-      // Create empty arrays to hold the items we want to delete
-      const categoriesToDelete = [];
-      const resourcesToDelete = [];
+      // If nothing was selected, stop here.
+      if (checkedResources.length === 0) {
+        alert("No resources selected to delete.");
+        return;
+      }
 
-      // Loop through the checked categories and add their names to our list
-      checkedCategories.forEach(checkbox => {
-        categoriesToDelete.push(checkbox.value);
-      });
+      const resourcesToDelete = [];
 
       // Loop through the checked resources
       checkedResources.forEach(checkbox => {
-        // Remember our special value format: "categoryName:::resourceId"
         const parts = checkbox.value.split(':::');
-        const categoryName = parts[0];
-        const resourceId = parseInt(parts[1]); // Convert the ID back to a number
-
-        resourcesToDelete.push({ category: categoryName, id: resourceId });
+        resourcesToDelete.push({ category: parts[0], id: parseInt(parts[1]) });
       });
 
-      // 2. CONFIRM WITH THE USER
-
-      // If nothing was selected, stop here.
-      if (categoriesToDelete.length === 0 && resourcesToDelete.length === 0) {
-        alert("No items selected to delete.");
-        return;
-      }
-
       // Ask for a final confirmation before deleting.
-      if (!confirm(`Are you sure you want to delete ${categoriesToDelete.length} categories and ${resourcesToDelete.length} resources? This cannot be undone.`)) {
+      if (!confirm(`Are you sure you want to delete the selected ${resourcesToDelete.length} resources? This cannot be undone.`)) {
         return;
       }
 
-      // 3. SEND THE DATA TO THE SERVER
-
-      // We will now call a new "bulk-delete" endpoint on our server
+      // Send the data to the server
       const res = await fetch('/api/admin/bulk-delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${currentAdminCode}`
         },
-        // We send both lists in a single object
-        body: JSON.stringify({ 
-          categories: categoriesToDelete, 
-          resources: resourcesToDelete 
-        })
+        // We only need to send the resources list now
+        body: JSON.stringify({ resources: resourcesToDelete })
       });
 
       const data = await res.json();
       alert(data.message || data.error);
 
-      // 4. REFRESH THE DISPLAY
-
-      // Refresh the list to show the changes
+      // Refresh the display
       displayManageableResources();
     }
 

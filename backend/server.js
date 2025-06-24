@@ -269,55 +269,40 @@ app.delete('/api/admin/category', (req, res) => {
 });
 
 app.delete('/api/admin/bulk-delete', (req, res) => {
-  // 1. Authenticate the admin
   const auth = req.headers.authorization;
   if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  // 2. Get the lists of items to delete from the request
-  const { categories, resources } = req.body;
-  if (!categories || !resources) {
+  // We only expect 'resources' in the body now
+  const { resources } = req.body;
+  if (!resources) {
     return res.status(400).json({ error: 'Invalid request body.' });
   }
 
   const resourceFile = __dirname + '/resources.json';
 
-  // 3. Read the main resources file ONCE
   fs.readFile(resourceFile, 'utf8', (err, data) => {
     if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
 
     let resourcesData = JSON.parse(data);
 
-    // 4. Perform the deletions
-    // First, delete the full categories. This is efficient.
-    categories.forEach(categoryName => {
-      console.log(`Deleting category: ${categoryName}`);
-      delete resourcesData[categoryName];
-    });
-
-    // Next, delete the individual resources
+    // We no longer need to loop through categories to delete, only resources
     resources.forEach(itemToDelete => {
-      // Important safety check: Does the category for this item still exist?
-      // (It might have been deleted in the step above)
       if (resourcesData[itemToDelete.category]) {
-        console.log(`Deleting resource ID ${itemToDelete.id} from category ${itemToDelete.category}`);
-
-        // We use .filter() to create a new array containing only the items we want to KEEP
         resourcesData[itemToDelete.category] = resourcesData[itemToDelete.category].filter(
           resource => resource.id !== itemToDelete.id
         );
       }
     });
 
-    // 5. Write the modified data back to the file ONCE
     fs.writeFile(resourceFile, JSON.stringify(resourcesData, null, 2), (writeErr) => {
       if (writeErr) return res.status(500).json({ error: 'Failed to save updated resources.' });
-
       res.json({ success: true, message: 'Selected items deleted successfully!' });
     });
   });
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
