@@ -140,5 +140,55 @@ app.get('/api/resources', (req, res) => {
   });
 });
 
+// PASTE THIS CODE INTO server.js
+
+// ADD A NEW RESOURCE (ADMIN)
+app.post('/api/admin/resource', (req, res) => {
+  // 1. Authenticate the admin
+  const auth = req.headers.authorization;
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // 2. Get the new resource data from the request
+  const { category, title, url, subtext } = req.body;
+  if (!category || !title || !url) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const resourceFile = __dirname + '/resources.json';
+
+  // 3. Read the existing resources.json file
+  fs.readFile(resourceFile, 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to read resources file.' });
+    }
+
+    const resources = JSON.parse(data);
+    const newResource = { title, url, subtext };
+
+    // 4. Add the new resource to the correct category
+    if (resources[category]) {
+      // If the category already exists, add to it
+      resources[category].push(newResource);
+    } else {
+      // If it's a new category, create it
+      resources[category] = [newResource];
+    }
+
+    // 5. Write the updated data back to the file
+    fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
+      if (writeErr) {
+        console.error(writeErr);
+        return res.status(500).json({ error: 'Failed to save new resource.' });
+      }
+
+      // 6. Send a success message
+      res.json({ success: true, message: `Resource '${title}' added successfully!` });
+    });
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
