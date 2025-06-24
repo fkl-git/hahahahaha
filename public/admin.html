@@ -106,6 +106,7 @@
 
       <h3>Manage Existing Resources</h3>
       <button onclick="displayManageableResources()">Load & Refresh Resources</button>
+      <button onclick="deleteSelectedItems()" style="background: #c82333; border-color: #c82333;">Delete Selected Items</button>
       <div id="resource-list" style="margin-top: 15px; text-align: left;"></div>
     </div>
 
@@ -280,9 +281,9 @@
       const res = await fetch('/api/resources');
       const resourceCategories = await res.json();
 
+      // This part for populating the dropdown stays the same
       const dropdown = document.getElementById('categoryDropdown');
-      dropdown.innerHTML = '<option value="">-- Select a Category --</option>'; // Default option
-
+      dropdown.innerHTML = '<option value="">-- Select a Category --</option>'; 
       const categories = Object.keys(resourceCategories);
       categories.forEach(category => {
         const option = document.createElement('option');
@@ -290,21 +291,27 @@
         option.textContent = category;
         dropdown.appendChild(option);
       });
-
-      // Add the special option for creating a new category at the end
       dropdown.innerHTML += '<option value="--new--">-- Add New Category --</option>';
-      
+
+      // The logic to build the list of resources gets updated here
       let html = '';
       for (const categoryName in resourceCategories) {
         html += `<div style="padding:10px; border:1px solid #eee; margin-bottom:10px;">`;
-        // We will add the category delete button here in the next step!
-        html += `<h4>${categoryName} <button onclick="deleteCategory('${categoryName}')" style="background:#800000; color:white; font-size:0.8em;">Delete Entire Category</button></h4>`;
+
+        // THE FIRST CHANGE IS HERE: Add a checkbox for the entire category
+        html += `<h4>
+                  <input type="checkbox" name="category-checkbox" value="${categoryName}" style="margin-right: 10px;">
+                  ${categoryName} 
+                  <button onclick="deleteCategory('${categoryName}')" style="background:#800000; color:white; font-size:0.8em;">Delete Entire Category</button>
+                </h4>`;
 
         const links = resourceCategories[categoryName];
         links.forEach(link => {
-          // Note: We pass the categoryName and the link's unique ID to the delete function
+          // THE SECOND CHANGE IS HERE: Add a checkbox for each individual resource
+          // We cleverly pack the category and ID into the value attribute for later use.
           html += `
             <p style="border-bottom: 1px solid #f0f0f0; padding-bottom: 5px;">
+              <input type="checkbox" name="resource-checkbox" value="${categoryName}:::${link.id}" style="margin-right: 10px;">
               ${link.title}
               <button onclick="deleteResource('${categoryName}', ${link.id})" style="float:right; background:#f44336;">Delete</button>
             </p>
@@ -370,7 +377,72 @@
       // Refresh the list to show the change
       displayManageableResources();
     }
-    
+
+    async function deleteSelectedItems() {
+      // 1. GATHER DATA FROM CHECKBOXES
+
+      // Find all checked category checkboxes
+      const checkedCategories = document.querySelectorAll('input[name="category-checkbox"]:checked');
+      // Find all checked resource checkboxes
+      const checkedResources = document.querySelectorAll('input[name="resource-checkbox"]:checked');
+
+      // Create empty arrays to hold the items we want to delete
+      const categoriesToDelete = [];
+      const resourcesToDelete = [];
+
+      // Loop through the checked categories and add their names to our list
+      checkedCategories.forEach(checkbox => {
+        categoriesToDelete.push(checkbox.value);
+      });
+
+      // Loop through the checked resources
+      checkedResources.forEach(checkbox => {
+        // Remember our special value format: "categoryName:::resourceId"
+        const parts = checkbox.value.split(':::');
+        const categoryName = parts[0];
+        const resourceId = parseInt(parts[1]); // Convert the ID back to a number
+
+        resourcesToDelete.push({ category: categoryName, id: resourceId });
+      });
+
+      // 2. CONFIRM WITH THE USER
+
+      // If nothing was selected, stop here.
+      if (categoriesToDelete.length === 0 && resourcesToDelete.length === 0) {
+        alert("No items selected to delete.");
+        return;
+      }
+
+      // Ask for a final confirmation before deleting.
+      if (!confirm(`Are you sure you want to delete ${categoriesToDelete.length} categories and ${resourcesToDelete.length} resources? This cannot be undone.`)) {
+        return;
+      }
+
+      // 3. SEND THE DATA TO THE SERVER
+
+      // We will now call a new "bulk-delete" endpoint on our server
+      const res = await fetch('/api/admin/bulk-delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentAdminCode}`
+        },
+        // We send both lists in a single object
+        body: JSON.stringify({ 
+          categories: categoriesToDelete, 
+          resources: resourcesToDelete 
+        })
+      });
+
+      const data = await res.json();
+      alert(data.message || data.error);
+
+      // 4. REFRESH THE DISPLAY
+
+      // Refresh the list to show the changes
+      displayManageableResources();
+    }
+
   </script>
 </body>
 </html>
