@@ -1,4 +1,4 @@
-run = "node server.js"
+run = "node backend/server.js"
 
 [nix]
 channel = "stable-24_05"
