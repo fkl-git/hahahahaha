@@ -41,45 +41,51 @@ async function login() {
 
   const data = await res.json();
 
-  const message = document.getElementById('message');
   if (data.success) {
-    message.textContent = "Access granted!";
+    window.currentUsername = username; // <-- SET THIS!
     document.getElementById('login-container').style.display = 'none';
     document.getElementById('content-container').style.display = 'block';
-
-    const logoutBtn = document.getElementById('logout-button');
-    logoutBtn.style.display = 'inline-flex';
-    setTimeout(() => logoutBtn.classList.add('show'), 10); // trigger smooth fade
-    document.getElementById('userNameMark').textContent = username;
-  } else {
-    message.textContent = data.message;
+    document.getElementById('logout-button').style.display = 'inline-block';
+    document.getElementById('userNameMark').innerText = username;
   }
+
+  document.getElementById('message').textContent = data.message;
 }
 
-document.getElementById('logout-button').addEventListener('click', () => {
-  // Show confirmation popup
-  document.getElementById('logout-confirm').style.display = 'block';
+    document.getElementById('logout-button').addEventListener('click', () => {
+      document.getElementById('logout-confirm').style.display = 'block';
 
-  document.getElementById('confirm-yes').onclick = async function() {
-    // Assume username is stored somewhere — e.g., window.currentUsername
-    if (!window.currentUsername) {
-      alert("No username found for logout");
-      return;
-    }
+      document.getElementById('confirm-yes').onclick = async function() {
+        if (!window.currentUsername) {
+          alert("No username found for logout");
+          return;
+        }
 
-    // Send logout request
-    const res = await fetch('/api/logout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: window.currentUsername })
+        const res = await fetch('/api/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: window.currentUsername })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert("You have successfully logged out");
+        } else {
+          alert("Logout failed: " + data.message);
+        }
+
+        // Reset state
+        window.currentUsername = null;
+        document.getElementById('content-container').style.display = 'none';
+        document.getElementById('logout-button').style.display = 'none';
+        document.getElementById('login-container').style.display = 'block';
+        document.getElementById('logout-confirm').style.display = 'none';
+      };
+
+      document.getElementById('confirm-no').onclick = function() {
+        document.getElementById('logout-confirm').style.display = 'none';
+      };
     });
-
-    const data = await res.json();
-    if (data.success) {
-      alert("You have successfully logged out");
-    } else {
-      alert("Logout failed: " + data.message);
-    }
 
     // Hide protected content and show login form
     document.getElementById('content-container').style.display = 'none';
