@@ -47,7 +47,7 @@
     .flex-container {
       display: flex;
       align-items: center;
-      gap: 15px; /* A healthy gap between checkbox and title */
+      gap: 15px; 
       padding: 8px 15px;
     }
 
@@ -61,14 +61,13 @@
       border-bottom: 1px solid #f0f0f0;
     }
 
-    .flex-grow {
-      /* This element no longer needs flex-grow, but we use it for styling */
-      word-break: break-word;
-    }
+    /* The .flex-grow class has been removed as it's no longer needed */
 
     .flex-container h4 {
       margin: 0;
       font-size: 1.1em;
+      /* Make the header title take up the available space now */
+      flex-grow: 1; 
     }
 
     .flex-container input[type="checkbox"] {
@@ -76,12 +75,11 @@
       flex-shrink: 0; 
     }
 
-    /* === THE DEFINITIVE FIX IS HERE === */
     .delete-button-category, .delete-button-resource {
       padding: 5px 10px;
       font-size: 0.8em;
       flex-shrink: 0;
-      /* This is the magic property that pushes the button to the far right */
+      /* This is the key property that pushes the button to the far right */
       margin-left: auto; 
     }
     .delete-button-category { background-color: #800000; }
@@ -354,7 +352,7 @@
               html += `
                 <div class="flex-container resource-item">
                   <input type="checkbox" name="resource-checkbox" value="${categoryName}:::${link.id}">
-                  <span class="flex-grow">${link.title}</span>
+                  <span>${link.title}</span>
                   <button onclick="deleteResource('${categoryName}', ${link.id})" class="delete-button-resource">Delete</button>
                 </div>
               `;
