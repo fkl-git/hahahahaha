@@ -4,88 +4,105 @@
   <meta charset="UTF-8" />
   <title>Access Logs</title>
   <style>
+    :root {
+      --primary-bg: #fff;
+      --secondary-bg: #f7f9fc;
+      --border-color: #e1e5ea;
+      --text-color: #333;
+      --red-dark: #c82333;
+      --red-light: #dc3545;
+      --green: #28a745;
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f9f9f9;
-      color: #333;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--secondary-bg);
+      color: var(--text-color);
+      margin: 0;
       padding: 20px;
     }
-    #loginBox {
-      max-width: 300px; margin: 100px auto; padding: 20px;
-      border: 1px solid #ddd; border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: center;
-      background: #fff;
-    }
-    input, select, textarea {
-      width: 90%; padding: 10px; margin: 10px 0;
-      border: 1px solid #ccc; border-radius: 8px; font-size: 1em;
+
+    /* General Admin Styles */
+    #loginBox, #adminContent {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: var(--primary-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     button {
-      padding: 10px 15px; background: #28a745; border: none;
-      color: white; border-radius: 8px; cursor: pointer;
+      padding: 8px 15px; background: var(--green); border: none;
+      color: white; border-radius: 6px; cursor: pointer;
       font-size: 0.9em; transition: background 0.2s;
     }
-    button:hover { background: #218838; }
+    button:hover { filter: brightness(0.9); }
+    #logoutButton { background: var(--red-light); }
 
-    #logoutButton { background: #dc3545; }
-    #logoutButton:hover { background: #c82333; }
+    /* Table Styles */
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid var(--border-color); padding: 10px; text-align: left;}
+    th { background: #f1f3f5; }
 
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: #fff; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: left;}
-    th { background: #f5f5f5; }
 
-    /* === STYLES FOR RESOURCE MANAGEMENT === */
+    /* === NEW & ROBUST RESOURCE MANAGEMENT STYLES === */
 
-    .resource-category-group {
-      background: #fff;
-      border: 1px solid #e0e0e0;
+    .resource-list-container {
+      margin-top: 20px;
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      background: var(--primary-bg);
+      overflow: hidden; /* Ensures child borders don't poke out */
     }
 
-    .flex-container {
-      display: flex;
-      align-items: center;
-      gap: 15px; 
-      padding: 8px 15px;
-    }
-
+    /* The header for a category (e.g., "DLSZ Resources") */
     .category-header {
-      background: #f7f7f7;
-      border-bottom: 1px solid #e0e0e0;
-      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background: #f1f3f5;
+      border-bottom: 1px solid var(--border-color);
     }
-
-    .resource-item:not(:last-child) {
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    /* The .flex-grow class has been removed as it's no longer needed */
-
-    .flex-container h4 {
+    .category-header h4 {
       margin: 0;
       font-size: 1.1em;
-      /* Make the header title take up the available space now */
-      flex-grow: 1; 
+      font-weight: 600;
     }
 
-    .flex-container input[type="checkbox"] {
-      margin: 0;
-      flex-shrink: 0; 
+    /* This is the container for a single resource item */
+    .resource-item {
+      display: grid; /* Using GRID for precise column control */
+      grid-template-columns: auto 1fr auto; /* 3 columns: checkbox, title, button */
+      align-items: center;
+      gap: 15px;
+      padding: 12px 15px;
+    }
+    .resource-item:not(:last-child) {
+      border-bottom: 1px solid #f0f2f5;
     }
 
-    .delete-button-category, .delete-button-resource {
-      padding: 5px 10px;
+    /* Styling the title within the grid to handle long text */
+    .resource-item span {
+      white-space: nowrap; /* Prevent wrapping */
+      overflow: hidden; /* Hide text that overflows */
+      text-overflow: ellipsis; /* Add '...' to overflowing text */
+      font-size: 0.95em;
+    }
+
+    /* Styling for all delete buttons */
+    .delete-button {
+      padding: 5px 12px;
       font-size: 0.8em;
-      flex-shrink: 0;
-      /* This is the key property that pushes the button to the far right */
-      margin-left: auto; 
+      background-color: var(--red-light);
+      white-space: nowrap; /* Prevent button text from wrapping */
     }
-    .delete-button-category { background-color: #800000; }
-    .delete-button-category:hover { background-color: #600000; }
-    .delete-button-resource { background-color: #f44336; }
-    .delete-button-resource:hover { background-color: #d32f2f; }
+    .delete-button-category {
+        background-color: #800000;
+    }
 
   </style>
 </head>
@@ -319,7 +336,7 @@
         const res = await fetch('/api/resources');
         const resourceCategories = await res.json();
 
-        // This part for populating the dropdown stays the same
+        // --- Dropdown population logic (Stays the same) ---
         const dropdown = document.getElementById('categoryDropdown');
         dropdown.innerHTML = '<option value="">-- Select a Category --</option>'; 
         const categories = Object.keys(resourceCategories);
@@ -331,38 +348,36 @@
         });
         dropdown.innerHTML += '<option value="--new--">-- Add New Category --</option>';
 
-        let html = '';
-        for (const categoryName in resourceCategories) {
-          // Each category group starts here
-          html += `<div class="resource-category-group">`;
+        // --- HTML Generation Logic (Completely New & Improved) ---
+        let html = '<div class="resource-list-container">';
 
-          // === THIS IS THE CORRECTED CATEGORY HEADER ===
-          // It wraps the title and button in a flex-container div.
+        for (const categoryName in resourceCategories) {
+          // Create the category header
           html += `
-            <div class="flex-container category-header">
-              <h4 class="flex-grow">${categoryName}</h4>
-              <button onclick="deleteCategory('${categoryName}')" class="delete-button-category">Delete Entire Category</button>
+            <div class="category-header">
+              <h4>${categoryName}</h4>
+              <button onclick="deleteCategory('${categoryName}')" class="delete-button delete-button-category">Delete Entire Category</button>
             </div>
           `;
 
           const links = resourceCategories[categoryName];
           if (links.length > 0) {
+            // Create each resource item row
             links.forEach(link => {
-              // Each resource item is also in its own flex-container
               html += `
-                <div class="flex-container resource-item">
+                <div class="resource-item">
                   <input type="checkbox" name="resource-checkbox" value="${categoryName}:::${link.id}">
                   <span>${link.title}</span>
-                  <button onclick="deleteResource('${categoryName}', ${link.id})" class="delete-button-resource">Delete</button>
+                  <button onclick="deleteResource('${categoryName}', ${link.id})" class="delete-button">Delete</button>
                 </div>
               `;
             });
           } else {
-            html += `<div class="resource-item"><p><em>No resources in this category.</em></p></div>`;
+             html += `<div class="resource-item"><p style="grid-column: 1 / -1;"><em>No resources in this category.</em></p></div>`;
           }
-
-          html += `</div>`; // End of category group
         }
+
+        html += '</div>'; // Close the main container
         listDiv.innerHTML = html;
 
       } catch (error) {
