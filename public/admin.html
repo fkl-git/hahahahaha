@@ -90,6 +90,16 @@
       <input type="text" id="newUserOtp" placeholder="Enter OTP" />
       <button onclick="addNewUser()">Add New User</button>
       <p id="newUserMsg"></p>
+
+      <hr style="margin: 30px 0;">
+
+      <h3>Add New Resource</h3>
+      <input type="text" id="newResourceCategory" placeholder="Category (e.g., GENERAL, BIO)">
+      <input type="text" id="newResourceTitle" placeholder="Resource Title (e.g., 📚 Khan Academy)">
+      <input type="text" id="newResourceUrl" placeholder="Resource URL (e.g., https://...)">
+      <textarea id="newResourceSubtext" placeholder="Subtext / Description" rows="3" style="width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px;"></textarea>
+      <button onclick="addNewResource()">Add Resource</button>
+      <p id="resourceMsg"></p>
     </div>
 
     <button id="logoutButton" onclick="logout()">Log Out</button>
@@ -217,6 +227,32 @@
       fetchLogs();
     }
   }, 5000);
+
+    async function addNewResource() {
+      const resource = {
+        category: document.getElementById('newResourceCategory').value,
+        title: document.getElementById('newResourceTitle').value,
+        url: document.getElementById('newResourceUrl').value,
+        subtext: document.getElementById('newResourceSubtext').value
+      };
+
+      if (!resource.category || !resource.title || !resource.url) {
+        document.getElementById('resourceMsg').textContent = 'Category, Title, and URL are required.';
+        return;
+      }
+
+      const res = await fetch('/api/admin/resource', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentAdminCode}`
+        },
+        body: JSON.stringify(resource)
+      });
+
+      const data = await res.json();
+      document.getElementById('resourceMsg').textContent = data.message || data.error;
+    }
   </script>
 </body>
 </html>
