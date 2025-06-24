@@ -47,8 +47,7 @@
     .flex-container {
       display: flex;
       align-items: center;
-      /* MODIFIED: Reduced the gap to give more space to the text */
-      gap: 10px; 
+      gap: 15px; /* A healthy gap between checkbox and title */
       padding: 8px 15px;
     }
 
@@ -63,9 +62,7 @@
     }
 
     .flex-grow {
-      /* MODIFIED: Changing the flex property gives the title priority for space. */
-      flex: 1 1 auto; 
-      min-width: 0;
+      /* This element no longer needs flex-grow, but we use it for styling */
       word-break: break-word;
     }
 
@@ -76,19 +73,22 @@
 
     .flex-container input[type="checkbox"] {
       margin: 0;
-      flex-shrink: 0;
+      flex-shrink: 0; 
     }
 
+    /* === THE DEFINITIVE FIX IS HERE === */
     .delete-button-category, .delete-button-resource {
       padding: 5px 10px;
       font-size: 0.8em;
-      /* MODIFIED: This prevents the button from shrinking and gives text more room. */
-      flex-shrink: 0; 
+      flex-shrink: 0;
+      /* This is the magic property that pushes the button to the far right */
+      margin-left: auto; 
     }
     .delete-button-category { background-color: #800000; }
     .delete-button-category:hover { background-color: #600000; }
     .delete-button-resource { background-color: #f44336; }
     .delete-button-resource:hover { background-color: #d32f2f; }
+
   </style>
 </head>
 <body>
