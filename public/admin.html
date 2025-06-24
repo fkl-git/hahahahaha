@@ -46,8 +46,9 @@
 
     .flex-container {
       display: flex;
-      align-items: center; /* This is the key for vertical centering */
-      gap: 15px;
+      align-items: center;
+      /* MODIFIED: Reduced the gap to give more space to the text */
+      gap: 10px; 
       padding: 8px 15px;
     }
 
@@ -62,10 +63,10 @@
     }
 
     .flex-grow {
-      flex-grow: 1;
-      /* === NEW: These two lines are the fix for text wrapping === */
-      min-width: 0; /* A flexbox trick to allow text to wrap properly */
-      word-break: break-word; /* Allows long words to break and wrap */
+      /* MODIFIED: Changing the flex property gives the title priority for space. */
+      flex: 1 1 auto; 
+      min-width: 0;
+      word-break: break-word;
     }
 
     .flex-container h4 {
@@ -73,16 +74,16 @@
       font-size: 1.1em;
     }
 
-    /* === NEW: This specifically targets the checkbox for clean alignment === */
     .flex-container input[type="checkbox"] {
-      margin: 0; /* Removes any default margins */
-      flex-shrink: 0; /* Prevents the checkbox from shrinking */
+      margin: 0;
+      flex-shrink: 0;
     }
 
     .delete-button-category, .delete-button-resource {
       padding: 5px 10px;
       font-size: 0.8em;
-      min-width: 60px;
+      /* MODIFIED: This prevents the button from shrinking and gives text more room. */
+      flex-shrink: 0; 
     }
     .delete-button-category { background-color: #800000; }
     .delete-button-category:hover { background-color: #600000; }
