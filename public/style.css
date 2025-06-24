@@ -285,3 +285,43 @@ z-index: -1; /* MODIFIED: Set to -1 to place it behind other content */
 white-space: nowrap;
 }
 
+.timer-card-header {
+  cursor: pointer; /* Changes the mouse to a pointer to show it's clickable */
+  padding: 10px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+.timer-card-header:hover {
+  background-color: #f9f9f9; /* A subtle hover effect */
+}
+
+/* By default, the timer content is hidden */
+.timer-card-content {
+  display: none;
+  text-align: center;
+  padding: 20px 0;
+}
+/* We will add this 'open' class with JavaScript to show the content */
+.timer-card-content.open {
+  display: block;
+}
+
+#timer-display {
+  font-size: 6rem; /* Big, easy-to-read numbers */
+  font-weight: 300;
+  margin: 10px 0 20px 0;
+  color: #333;
+}
+body.dark-mode #timer-display {
+  color: #eee;
+}
+
+.timer-controls button {
+  margin: 0 5px;
+  min-width: 100px;
+  background-color: #007aff;
+  border: none;
+}
+.timer-controls button:hover {
+  background-color: #005bb5;
+}
