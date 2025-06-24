@@ -34,7 +34,7 @@
     th, td { border: 1px solid #ddd; padding: 10px; text-align: left;}
     th { background: #f5f5f5; }
 
-    /* === NEW STYLES FOR RESOURCE MANAGEMENT === */
+    /* === STYLES FOR RESOURCE MANAGEMENT === */
 
     .resource-category-group {
       background: #fff;
@@ -46,9 +46,9 @@
 
     .flex-container {
       display: flex;
-      align-items: center;
-      gap: 15px; /* Increased gap for better spacing */
-      padding: 8px 15px; /* Added horizontal padding */
+      align-items: center; /* This is the key for vertical centering */
+      gap: 15px;
+      padding: 8px 15px;
     }
 
     .category-header {
@@ -62,8 +62,10 @@
     }
 
     .flex-grow {
-      flex-grow: 1; /* This makes the title take up all available space */
-      margin: 0;
+      flex-grow: 1;
+      /* === NEW: These two lines are the fix for text wrapping === */
+      min-width: 0; /* A flexbox trick to allow text to wrap properly */
+      word-break: break-word; /* Allows long words to break and wrap */
     }
 
     .flex-container h4 {
@@ -71,10 +73,16 @@
       font-size: 1.1em;
     }
 
+    /* === NEW: This specifically targets the checkbox for clean alignment === */
+    .flex-container input[type="checkbox"] {
+      margin: 0; /* Removes any default margins */
+      flex-shrink: 0; /* Prevents the checkbox from shrinking */
+    }
+
     .delete-button-category, .delete-button-resource {
       padding: 5px 10px;
       font-size: 0.8em;
-      min-width: 60px; /* Gives delete buttons a consistent width */
+      min-width: 60px;
     }
     .delete-button-category { background-color: #800000; }
     .delete-button-category:hover { background-color: #600000; }
