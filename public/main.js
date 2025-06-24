@@ -5,6 +5,9 @@ window.onload = function () {
   const confirmYes = document.getElementById('confirm-yes');
   const confirmNo = document.getElementById('confirm-no');
 
+  document.getElementById('login-button').addEventListener('click', login);
+  };
+
   // Show confirm dialog when clicking logout
   logoutButton.addEventListener('click', () => {
     document.getElementById('logout-confirm').style.display = 'flex';
