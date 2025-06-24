@@ -94,7 +94,8 @@
       <hr style="margin: 30px 0;">
 
       <h3>Add New Resource</h3>
-      <input type="text" id="newResourceCategory" placeholder="Category (e.g., GENERAL, BIO)">
+      <select id="categoryDropdown" onchange="handleCategoryChange(this)"></select>
+      <input type="text" id="newCategoryInput" placeholder="Enter new category name" style="display: none; margin-top: 10px;">
       <input type="text" id="newResourceTitle" placeholder="Resource Title (e.g., 📚 Khan Academy)">
       <input type="text" id="newResourceUrl" placeholder="Resource URL (e.g., https://...)">
       <textarea id="newResourceSubtext" placeholder="Subtext / Description" rows="3" style="width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px;"></textarea>
@@ -235,12 +236,22 @@
   }, 5000);
 
     async function addNewResource() {
+      const dropdown = document.getElementById('categoryDropdown');
+      const newCategoryInput = document.getElementById('newCategoryInput');
+      let categoryName = dropdown.value;
+
+      if (categoryName === '--new--') {
+        // If "Add New" is selected, use the text from the input field
+        categoryName = newCategoryInput.value;
+      }
+
       const resource = {
-        category: document.getElementById('newResourceCategory').value,
+        category: categoryName, // This now uses our smart logic
         title: document.getElementById('newResourceTitle').value,
         url: document.getElementById('newResourceUrl').value,
         subtext: document.getElementById('newResourceSubtext').value
       };
+
 
       if (!resource.category || !resource.title || !resource.url) {
         document.getElementById('resourceMsg').textContent = 'Category, Title, and URL are required.';
@@ -269,6 +280,20 @@
       const res = await fetch('/api/resources');
       const resourceCategories = await res.json();
 
+      const dropdown = document.getElementById('categoryDropdown');
+      dropdown.innerHTML = '<option value="">-- Select a Category --</option>'; // Default option
+
+      const categories = Object.keys(resourceCategories);
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        dropdown.appendChild(option);
+      });
+
+      // Add the special option for creating a new category at the end
+      dropdown.innerHTML += '<option value="--new--">-- Add New Category --</option>';
+      
       let html = '';
       for (const categoryName in resourceCategories) {
         html += `<div style="padding:10px; border:1px solid #eee; margin-bottom:10px;">`;
@@ -290,6 +315,17 @@
       listDiv.innerHTML = html;
     }
 
+    function handleCategoryChange(dropdown) {
+      const newCategoryInput = document.getElementById('newCategoryInput');
+      if (dropdown.value === '--new--') {
+        // If the user selects "-- Add New Category --", show the text input
+        newCategoryInput.style.display = 'block';
+      } else {
+        // Otherwise, make sure it's hidden
+        newCategoryInput.style.display = 'none';
+      }
+    }
+    
     async function deleteResource(categoryName, resourceId) {
       // A safety confirmation!
       if (!confirm(`Are you sure you want to delete this resource?`)) {
