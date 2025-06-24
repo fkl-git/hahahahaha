@@ -102,7 +102,7 @@
     const adminCode = document.getElementById('adminCode').value || currentAdminCode;
     currentAdminCode = adminCode;
 
-    const res = await fetch('/api/logs', {
+    const res = await fetch(`/api/logs?_=${Date.now()}`, {
       headers: { 'Authorization': `Bearer ${adminCode}` }
     });
 
@@ -134,7 +134,6 @@
   }
 
   function logout() {
-    // This only logs out the admin from viewing the logs
     document.getElementById('loginBox').style.display = 'block';
     document.getElementById('adminContent').style.display = 'none';
     document.getElementById('logoutButton').style.display = 'none';
@@ -212,7 +211,7 @@
     }
   }
 
-  // Auto-refresh logs every 5 sec when admin is logged in
+  // Auto-refresh logs cleanly every 5 seconds
   setInterval(() => {
     if (currentAdminCode) {
       fetchLogs();
