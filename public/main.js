@@ -118,4 +118,4 @@ async function loadResources() {
     // Display an error message to the user if something goes wrong
     grid.innerHTML = '<p style="color: red;">Could not load resources. Please try again later.</p>';
   }
-}
+};
