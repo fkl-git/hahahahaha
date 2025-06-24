@@ -55,3 +55,40 @@ async function login() {
     message.textContent = data.message;
   }
 }
+
+document.getElementById('logout-button').addEventListener('click', () => {
+  // Show confirmation popup
+  document.getElementById('logout-confirm').style.display = 'block';
+
+  document.getElementById('confirm-yes').onclick = async function() {
+    // Assume username is stored somewhere — e.g., window.currentUsername
+    if (!window.currentUsername) {
+      alert("No username found for logout");
+      return;
+    }
+
+    // Send logout request
+    const res = await fetch('/api/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: window.currentUsername })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert("You have successfully logged out");
+    } else {
+      alert("Logout failed: " + data.message);
+    }
+
+    // Hide protected content and show login form
+    document.getElementById('content-container').style.display = 'none';
+    document.getElementById('logout-button').style.display = 'none';
+    document.getElementById('login-container').style.display = 'block';
+    document.getElementById('logout-confirm').style.display = 'none';
+  };
+
+  document.getElementById('confirm-no').onclick = function() {
+    document.getElementById('logout-confirm').style.display = 'none';
+  };
+});
