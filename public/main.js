@@ -72,3 +72,4 @@ async function login() {
   } else {
     document.getElementById('message').textContent = data.message;
   }
+}
