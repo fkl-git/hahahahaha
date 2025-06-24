@@ -347,6 +347,29 @@
       // Refresh the list to show the change
       displayManageableResources();
     }
+
+    async function deleteCategory(categoryName) {
+      // This confirmation is extra important because it's a big action!
+      if (!confirm(`ARE YOU SURE you want to delete the ENTIRE '${categoryName}' category and all of its resources? This cannot be undone.`)) {
+        return; // Stop if the user clicks "Cancel"
+      }
+
+      // Call the server endpoint to delete the category
+      const res = await fetch('/api/admin/category', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentAdminCode}`
+        },
+        body: JSON.stringify({ category: categoryName })
+      });
+
+      const data = await res.json();
+      alert(data.message || data.error);
+
+      // Refresh the list to show the change
+      displayManageableResources();
+    }
     
   </script>
 </body>
