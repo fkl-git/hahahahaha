@@ -273,7 +273,7 @@
       for (const categoryName in resourceCategories) {
         html += `<div style="padding:10px; border:1px solid #eee; margin-bottom:10px;">`;
         // We will add the category delete button here in the next step!
-        html += `<h4>${categoryName}</h4>`;
+        html += `<h4><span class="math-inline">\{categoryName\} <button onclick\="deleteCategory\('</span>{categoryName}')" style="background:#800000; color:white; font-size:0.8em;">Delete Entire Category</button></h4>`;
 
         const links = resourceCategories[categoryName];
         links.forEach(link => {

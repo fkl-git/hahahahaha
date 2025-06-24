@@ -238,5 +238,35 @@ app.delete('/api/admin/resource', (req, res) => {
   });
 });
 
+app.delete('/api/admin/category', (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { category } = req.body;
+  if (!category) return res.status(400).json({ error: 'Missing category' });
+
+  const resourceFile = __dirname + '/resources.json';
+
+  fs.readFile(resourceFile, 'utf8', (err, data) => {
+    if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
+
+    const resources = JSON.parse(data);
+
+    if (resources[category]) {
+      delete resources[category]; // This deletes the whole category
+    } else {
+      return res.status(404).json({ error: 'Category not found.' });
+    }
+
+    fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
+      if (writeErr) return res.status(500).json({ error: 'Failed to save updated resources.' });
+
+      res.json({ success: true, message: `Category '${category}' deleted successfully!` });
+    });
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
