@@ -28,25 +28,17 @@ async function login() {
 }
 
 async function loadResources() {
-  // Get the container where we will place the cards
   const grid = document.querySelector('.grid-container');
-  // NOTE: I've moved the creation of the timer card OUT of this function
-  // so that it doesn't get re-created every time resources are loaded.
-  // The timer card is now permanently in your index.html.
-
-  // Clear only the resource cards, not the timer
-  const resourceCards = grid.querySelectorAll('.resource-card');
-  resourceCards.forEach(card => card.remove());
+  grid.innerHTML = ''; // Clear previous resources
 
   try {
     const response = await fetch('/api/resources');
     const resourceCategories = await response.json();
 
+    let allCardsHTML = ''; 
     for (const categoryName in resourceCategories) {
-      const card = document.createElement('div');
-      card.className = 'card resource-card'; // Added a specific class
+      let cardHTML = `<div class="card resource-card"><h2>${categoryName}</h2>`;
 
-      let cardHTML = `<h2>${categoryName}</h2>`;
       const links = resourceCategories[categoryName];
       links.forEach(link => {
         cardHTML += `
@@ -57,16 +49,16 @@ async function loadResources() {
           </p>
         `;
       });
-      card.innerHTML = cardHTML;
-      grid.appendChild(card);
+      cardHTML += `</div>`;
+      allCardsHTML += cardHTML;
     }
+
+    grid.innerHTML = allCardsHTML;
+
   } catch (error) {
     console.error("Failed to load resources:", error);
   }
 }
-
-
-// In main.js, replace your entire window.onload function with this one.
 
 window.onload = function () {
   // --- LOGOUT AND LOGIN LOGIC ---
@@ -104,12 +96,30 @@ window.onload = function () {
   });
 
   // ===============================================
-  // === FINAL "ALL-OUT" POMODORO TIMER LOGIC ======
+  // === TOOLKIT SIDE PANEL LOGIC ==================
   // ===============================================
-  const pomodoroCard = document.getElementById('pomodoro-card');
-  if (pomodoroCard) {
+  const toolkitToggleBtn = document.getElementById('toolkit-toggle-btn');
+  const sidePanel = document.getElementById('side-panel');
+  const sidePanelCloseBtn = document.getElementById('side-panel-close-btn');
+  const contentContainer = document.getElementById('content-container');
+  const loginContainer = document.getElementById('login-container');
 
-    // ... (All the `getElementById` calls stay the same) ...
+  function toggleToolkit() {
+    sidePanel.classList.toggle('open');
+    contentContainer.classList.toggle('content-shifted');
+    loginContainer.classList.toggle('content-shifted');
+  }
+
+  toolkitToggleBtn.addEventListener('click', toggleToolkit);
+  sidePanelCloseBtn.addEventListener('click', toggleToolkit);
+
+  // ===============================================
+  // === UNIFIED FOCUS DASHBOARD LOGIC =============
+  // ===============================================
+  const dashboard = document.getElementById('focus-dashboard');
+  if (dashboard) {
+
+    // --- Get all DOM Elements ---
     const timerModeTitle = document.getElementById('timer-mode-title');
     const timerStatus = document.getElementById('timer-status');
     const timerDisplay = document.getElementById('timer-display');
@@ -118,42 +128,51 @@ window.onload = function () {
     const pauseBtn = document.getElementById('pause-btn');
     const resetBtn = document.getElementById('reset-btn');
     const alarmSound = document.getElementById('alarm-sound');
+
     const settingsBtn = document.getElementById('settings-btn');
     const settingsModal = document.getElementById('settings-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const settingsForm = document.getElementById('settings-form');
+
     const sliders = { work: document.getElementById('work-time-slider'), short: document.getElementById('short-break-slider'), long: document.getElementById('long-break-slider'), interval: document.getElementById('long-break-interval-slider') };
     const values = { work: document.getElementById('work-time-value'), short: document.getElementById('short-break-value'), long: document.getElementById('long-break-value'), interval: document.getElementById('long-break-interval-value') };
 
-    // ... (The pomodoro object stays the same) ...
-    const pomodoro = { settings: { workTime: 25, shortBreakTime: 5, longBreakTime: 15, longBreakInterval: 4, }, state: { timeLeft: 25 * 60, sessions: 0, currentMode: 'work', timerInterval: null, } };
+    const musicToggle = document.getElementById('music-toggle');
+    const musicControls = document.getElementById('music-controls');
+    const player = document.getElementById('youtube-player');
+    const playlistButtons = document.querySelectorAll('.playlist-btn');
 
-    // ... (switchMode and tick functions stay the same) ...
+    const pomodoro = {
+      settings: { workTime: 25, shortBreakTime: 5, longBreakTime: 15, longBreakInterval: 4 },
+      state: { timeLeft: 25 * 60, sessions: 0, currentMode: 'work', timerInterval: null }
+    };
+
     function switchMode(mode) {
       pomodoro.state.currentMode = mode;
-      pomodoroCard.className = 'card';
+      dashboard.className = 'card';
       if (mode === 'work') {
         pomodoro.state.timeLeft = pomodoro.settings.workTime * 60;
-        pomodoroCard.classList.add('timer-work');
+        dashboard.classList.add('timer-work');
         timerStatus.textContent = "Time to focus!";
       } else if (mode === 'shortBreak') {
         pomodoro.state.timeLeft = pomodoro.settings.shortBreakTime * 60;
-        pomodoroCard.classList.add('timer-break');
+        dashboard.classList.add('timer-break');
         timerStatus.textContent = "Time for a short break.";
       } else if (mode === 'longBreak') {
         pomodoro.state.timeLeft = pomodoro.settings.longBreakTime * 60;
-        pomodoroCard.classList.add('timer-break');
+        dashboard.classList.add('timer-break');
         timerStatus.textContent = "Time for a long break!";
       }
       updateDisplay();
       updateCycleTracker();
     }
+
     function tick() {
       pomodoro.state.timeLeft--;
       updateDisplay();
       if (pomodoro.state.timeLeft < 0) {
         pauseTimer();
-        alarmSound.play();
+        if(alarmSound) alarmSound.play();
         if (pomodoro.state.currentMode === 'work') {
           pomodoro.state.sessions++;
           if (pomodoro.state.sessions % pomodoro.settings.longBreakInterval === 0) {
@@ -172,16 +191,16 @@ window.onload = function () {
       timerStatus.textContent = pomodoro.state.currentMode === 'work' ? 'Working...' : 'On a break...';
       pomodoro.state.timerInterval = setInterval(tick, 1000);
     }
+
     function pauseTimer() {
       clearInterval(pomodoro.state.timerInterval);
       pomodoro.state.timerInterval = null;
-      // MODIFIED: Reset title when paused
       document.title = 'DLSZ Masterfile';
     }
+
     function resetTimer() {
       pauseTimer();
       switchMode(pomodoro.state.currentMode);
-      // MODIFIED: Reset title when reset
       document.title = 'DLSZ Masterfile';
     }
 
@@ -190,13 +209,11 @@ window.onload = function () {
       const seconds = pomodoro.state.timeLeft % 60;
       const displayString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
       timerDisplay.textContent = displayString;
-      // MODIFIED: Only update the title if the timer is actually running
       if (pomodoro.state.timerInterval) {
         document.title = `${displayString} - ${timerStatus.textContent}`;
       }
     }
 
-    // ... (All other functions and event listeners stay the same) ...
     function updateCycleTracker() {
       cycleTracker.innerHTML = '';
       const sessionsInCurrentCycle = pomodoro.state.sessions % pomodoro.settings.longBreakInterval;
@@ -209,16 +226,21 @@ window.onload = function () {
         cycleTracker.appendChild(dot);
       }
     }
+
     function setupSlider(sliderName) {
       const slider = sliders[sliderName];
       const valueDisplay = values[sliderName];
-      slider.addEventListener('input', () => {
-        valueDisplay.textContent = slider.value;
-      });
+      if(slider && valueDisplay) {
+        slider.addEventListener('input', () => {
+          valueDisplay.textContent = slider.value;
+        });
+      }
     }
+
     function saveSettings() {
       localStorage.setItem('pomodoroSettings', JSON.stringify(pomodoro.settings));
     }
+
     function loadSettings() {
       const savedSettings = JSON.parse(localStorage.getItem('pomodoroSettings'));
       if (savedSettings) {
@@ -228,11 +250,24 @@ window.onload = function () {
       sliders.short.value = pomodoro.settings.shortBreakTime;
       sliders.long.value = pomodoro.settings.longBreakTime;
       sliders.interval.value = pomodoro.settings.longBreakInterval;
-      Object.values(sliders).forEach(slider => slider.dispatchEvent(new Event('input')));
+      Object.values(sliders).forEach(slider => {
+        if(slider) slider.dispatchEvent(new Event('input'))
+      });
     }
+
+    function loadVideo(videoId) {
+        if (videoId) {
+            player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1&loop=1&playlist=${videoId}`;
+        } else {
+            player.src = 'about:blank';
+        }
+    }
+
+    // --- Event Listeners ---
     startBtn.addEventListener('click', startTimer);
     pauseBtn.addEventListener('click', pauseTimer);
     resetBtn.addEventListener('click', resetTimer);
+
     settingsBtn.addEventListener('click', () => settingsModal.classList.add('open'));
     closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
     settingsModal.addEventListener('click', (e) => {
@@ -240,6 +275,7 @@ window.onload = function () {
         settingsModal.classList.remove('open');
       }
     });
+
     settingsForm.addEventListener('submit', (e) => {
       e.preventDefault();
       pomodoro.settings.workTime = parseInt(sliders.work.value);
@@ -250,47 +286,31 @@ window.onload = function () {
       settingsModal.classList.remove('open');
       resetTimer();
     });
-    setupSlider('work');
-    setupSlider('short');
-    setupSlider('long');
-    setupSlider('interval');
-    setTimeout(() => {
-      loadSettings();
-      resetTimer();
-    }, 100);
-  }
-  // ===============================================
-  // === FOCUS FUEL MUSIC PLAYER LOGIC =============
-  // ===============================================
-  const playerContainer = document.getElementById('video-player-container');
-  if (playerContainer) { // Only run if the music player exists on the page
 
-    const player = document.getElementById('youtube-player');
-    const playlistButtons = document.querySelectorAll('.playlist-btn');
-
-    function loadVideo(videoId) {
-      // Construct the embed URL with parameters for better playback
-      player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1`;
-    }
+    musicToggle.addEventListener('click', () => {
+      musicControls.classList.toggle('open');
+    });
 
     playlistButtons.forEach(button => {
       button.addEventListener('click', () => {
-        // 1. Remove the 'active' class from all buttons
+        if (button.id === 'stop-music-btn') {
+          loadVideo(null);
+          playlistButtons.forEach(btn => btn.classList.remove('active'));
+          return;
+        }
         playlistButtons.forEach(btn => btn.classList.remove('active'));
-
-        // 2. Add the 'active' class to the clicked button
         button.classList.add('active');
-
-        // 3. Load the video using the ID from the button's data-video-id attribute
         const videoId = button.dataset.videoId;
         loadVideo(videoId);
       });
     });
 
-    // Optional: Load the first playlist by default when the page loads
-    const defaultActiveButton = document.querySelector('.playlist-btn.active');
-    if (defaultActiveButton) {
-        loadVideo(defaultActiveButton.dataset.videoId);
-    }
+    // --- Initialize Timer on Page Load ---
+    Object.keys(sliders).forEach(key => setupSlider(key));
+
+    setTimeout(() => {
+      loadSettings();
+      resetTimer();
+    }, 100);
   }
 };
