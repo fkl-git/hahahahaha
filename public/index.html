@@ -30,46 +30,42 @@
   </div>
 
   <div id="content-container" style="display: none;">
-  <div class="grid-container">
-    <div id="pomodoro-card" class="card timer-work"> <div id="timer-header" class="timer-card-header">
-      <div class="timer-title-container">
+    <div id="focus-dashboard" class="card">
+      <div class="dashboard-header">
         <h2 id="timer-mode-title">▶️ Study Timer</h2>
+        <button id="settings-btn" class="settings-button">⚙️</button>
       </div>
-      <button id="settings-btn" class="settings-button">⚙️</button>
-    </div>
-      <div class="card">
-        <div class="music-player-header">
-          <h2>🎧 Focus Fuel</h2>
+
+      <div class="dashboard-content">
+        <p id="timer-status">Time to focus!</p>
+        <h1 id="timer-display">25:00</h1>
+        <div id="cycle-tracker" class="cycle-tracker"></div>
+        <div class="timer-controls">
+          <button id="start-btn">Start</button>
+          <button id="pause-btn">Pause</button>
+          <button id="reset-btn">Reset</button>
         </div>
-        <div class="music-player-content">
+      </div>
+
+      <div class="music-section">
+        <div id="music-toggle" class="music-toggle">
+          <span>🎧 Select Focus Music</span>
+        </div>
+        <div id="music-controls" class="music-controls">
           <div class="playlist-buttons">
-            <button class="playlist-btn active" data-video-id="jfKfPfyJRdk">Lofi Beats</button>
+            <button class="playlist-btn" data-video-id="jfKfPfyJRdk">Lofi Beats</button>
             <button class="playlist-btn" data-video-id="wB3q_c4014k">Classical</button>
             <button class="playlist-btn" data-video-id="n61ULEU7CO0">Rain Sounds</button>
+            <button id="stop-music-btn" class="playlist-btn stop-btn">Stop Music</button>
           </div>
           <div id="video-player-container" class="video-player-container">
-            <iframe id="youtube-player" width="100%" height="100%" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <iframe id="youtube-player" src="about:blank" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
           </div>
         </div>
       </div>
-
-    <div id="timer-content" class="timer-card-content open"> <p id="timer-status">Time to focus!</p>
-
-      <h1 id="timer-display">25:00</h1>
-
-      <div id="cycle-tracker" class="cycle-tracker">
-        </div>
-
-      <div class="timer-controls">
-        <button id="start-btn">Start</button>
-        <button id="pause-btn">Pause</button>
-        <button id="reset-btn">Reset</button>
-      </div>
-    </div>
     </div>
 
     <audio id="alarm-sound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
-  </div>
   </div>
   
   <div class="watermark"> CONFIDENTIAL — For <span id="userNameMark"></span></div>
