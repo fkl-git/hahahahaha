@@ -110,8 +110,8 @@ window.onload = function () {
     loginContainer.classList.toggle('content-shifted');
   }
 
-  toolkitToggleBtn.addEventListener('click', toggleToolkit);
-  sidePanelCloseBtn.addEventListener('click', toggleToolkit);
+  if(toolkitToggleBtn) toolkitToggleBtn.addEventListener('click', toggleToolkit);
+  if(sidePanelCloseBtn) sidePanelCloseBtn.addEventListener('click', toggleToolkit);
 
   // ===============================================
   // === UNIFIED FOCUS DASHBOARD LOGIC =============
@@ -119,7 +119,6 @@ window.onload = function () {
   const dashboard = document.getElementById('focus-dashboard');
   if (dashboard) {
 
-    // --- Get all DOM Elements ---
     const timerModeTitle = document.getElementById('timer-mode-title');
     const timerStatus = document.getElementById('timer-status');
     const timerDisplay = document.getElementById('timer-display');
@@ -220,6 +219,7 @@ window.onload = function () {
       for (let i = 0; i < pomodoro.settings.longBreakInterval; i++) {
         const dot = document.createElement('div');
         dot.classList.add('cycle-dot');
+        // THIS IS THE CORRECTED LINE - 'pomodoro' instead of 'pomoro'
         if (i < sessionsInCurrentCycle) {
           dot.classList.add('completed');
         }
@@ -256,11 +256,11 @@ window.onload = function () {
     }
 
     function loadVideo(videoId) {
-        if (videoId) {
-            player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1&loop=1&playlist=${videoId}`;
-        } else {
-            player.src = 'about:blank';
-        }
+      if (videoId) {
+        player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1&loop=1&playlist=${videoId}`;
+      } else {
+        player.src = 'about:blank';
+      }
     }
 
     // --- Event Listeners ---
