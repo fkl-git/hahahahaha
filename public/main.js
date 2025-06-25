@@ -259,4 +259,38 @@ window.onload = function () {
       resetTimer();
     }, 100);
   }
+  // ===============================================
+  // === FOCUS FUEL MUSIC PLAYER LOGIC =============
+  // ===============================================
+  const playerContainer = document.getElementById('video-player-container');
+  if (playerContainer) { // Only run if the music player exists on the page
+
+    const player = document.getElementById('youtube-player');
+    const playlistButtons = document.querySelectorAll('.playlist-btn');
+
+    function loadVideo(videoId) {
+      // Construct the embed URL with parameters for better playback
+      player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1`;
+    }
+
+    playlistButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // 1. Remove the 'active' class from all buttons
+        playlistButtons.forEach(btn => btn.classList.remove('active'));
+
+        // 2. Add the 'active' class to the clicked button
+        button.classList.add('active');
+
+        // 3. Load the video using the ID from the button's data-video-id attribute
+        const videoId = button.dataset.videoId;
+        loadVideo(videoId);
+      });
+    });
+
+    // Optional: Load the first playlist by default when the page loads
+    const defaultActiveButton = document.querySelector('.playlist-btn.active');
+    if (defaultActiveButton) {
+        loadVideo(defaultActiveButton.dataset.videoId);
+    }
+  }
 };
