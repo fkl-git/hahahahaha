@@ -286,42 +286,92 @@ white-space: nowrap;
 }
 
 .timer-card-header {
-  cursor: pointer; /* Changes the mouse to a pointer to show it's clickable */
+  cursor: pointer;
   padding: 10px;
   border-radius: 8px;
-  transition: background-color 0.2s;
-}
-.timer-card-header:hover {
-  background-color: #f9f9f9; /* A subtle hover effect */
+  transition: background-color 0.3s;
 }
 
-/* By default, the timer content is hidden */
+/* By default, the timer content is visible */
 .timer-card-content {
-  display: none;
   text-align: center;
-  padding: 20px 0;
+  padding: 10px 0 20px 0;
 }
-/* We will add this 'open' class with JavaScript to show the content */
-.timer-card-content.open {
-  display: block;
+
+#timer-mode-title {
+  transition: color 0.3s;
 }
+#timer-status {
+  margin: 0;
+  font-size: 1em;
+  color: #666;
+  height: 20px; /* Reserve space to prevent layout shifts */
+  transition: color 0.3s;
+}
+body.dark-mode #timer-status {
+    color: #aaa;
+}
+
 
 #timer-display {
-  font-size: 6rem; /* Big, easy-to-read numbers */
+  font-size: 6rem;
   font-weight: 300;
-  margin: 10px 0 20px 0;
-  color: #333;
+  margin: 10px 0;
+  transition: color 0.3s;
 }
-body.dark-mode #timer-display {
-  color: #eee;
+
+.cycle-tracker {
+  height: 20px;
+  margin-bottom: 20px;
+}
+.cycle-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 4px;
+  background-color: #e0e0e0;
+  transition: background-color 0.3s;
+}
+body.dark-mode .cycle-dot {
+    background-color: #444;
+}
+.cycle-dot.completed {
+  background-color: #007aff; /* Blue for completed cycles */
 }
 
 .timer-controls button {
   margin: 0 5px;
   min-width: 100px;
-  background-color: #007aff;
-  border: none;
+  border: 1px solid transparent;
+  transition: all 0.3s;
 }
-.timer-controls button:hover {
+
+/* --- State-Based Themeing --- */
+
+/* WORK MODE THEME */
+#pomodoro-card.timer-work {
+  background-color: #fff;
+}
+#pomodoro-card.timer-work .timer-controls button {
+  background-color: #007aff; /* Blue */
+  color: white;
+}
+#pomodoro-card.timer-work .timer-controls button:hover {
   background-color: #005bb5;
+}
+
+/* BREAK MODE THEME */
+#pomodoro-card.timer-break {
+  background-color: #edf7ed; /* Light green background */
+}
+body.dark-mode #pomodoro-card.timer-break {
+    background-color: #1a2d1a;
+}
+#pomodoro-card.timer-break .timer-controls button {
+  background-color: #28a745; /* Green */
+  color: white;
+}
+#pomodoro-card.timer-break .timer-controls button:hover {
+  background-color: #218838;
 }

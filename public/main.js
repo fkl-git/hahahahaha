@@ -106,57 +106,117 @@ window.onload = function () {
   // === POMODORO TIMER LOGIC (NOW IN THE RIGHT PLACE) ===
   // ===============================================
 
-  const timerHeader = document.getElementById('timer-header');
-  const timerContent = document.getElementById('timer-content');
-  const timerDisplay = document.getElementById('timer-display');
-  const startBtn = document.getElementById('start-btn');
-  const pauseBtn = document.getElementById('pause-btn');
-  const resetBtn = document.getElementById('reset-btn');
+const pomodoroCard = document.getElementById('pomodoro-card');
+const timerModeTitle = document.getElementById('timer-mode-title');
+const timerStatus = document.getElementById('timer-status');
+const timerDisplay = document.getElementById('timer-display');
+const cycleTracker = document.getElementById('cycle-tracker');
+const startBtn = document.getElementById('start-btn');
+const pauseBtn = document.getElementById('pause-btn');
+const resetBtn = document.getElementById('reset-btn');
+const alarmSound = document.getElementById('alarm-sound');
 
-  // Check if timer elements exist before adding listeners
-  if (timerHeader) {
-      const WORK_TIME = 25 * 60; // 25 minutes in seconds
-      let timerInterval = null;
-      let timeLeft = WORK_TIME;
+if (pomodoroCard) { // Only run if the timer card exists on the page
+  const pomodoro = {
+    settings: {
+      workTime: 25 * 60,
+      shortBreakTime: 5 * 60,
+      longBreakTime: 15 * 60,
+      longBreakInterval: 4,
+    },
+    state: {
+      timeLeft: 25 * 60,
+      sessions: 0,
+      currentMode: 'work', // 'work', 'shortBreak', 'longBreak'
+      timerInterval: null,
+    }
+  };
 
-      // --- Main Functions ---
-      function startTimer() {
-        if (timerInterval) return;
-        timerInterval = setInterval(() => {
-          timeLeft--;
-          updateDisplay();
-          if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            alert("Time for a break!");
-          }
-        }, 1000);
-      }
+  function switchMode(mode) {
+    pomodoro.state.currentMode = mode;
+    pomodoroCard.className = 'card'; // Reset classes
 
-      function pauseTimer() {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
+    if (mode === 'work') {
+      pomodoro.state.timeLeft = pomodoro.settings.workTime;
+      pomodoroCard.classList.add('timer-work');
+      timerStatus.textContent = "Time to focus!";
+    } else if (mode === 'shortBreak') {
+      pomodoro.state.timeLeft = pomodoro.settings.shortBreakTime;
+      pomodoroCard.classList.add('timer-break');
+      timerStatus.textContent = "Time for a short break.";
+    } else if (mode === 'longBreak') {
+      pomodoro.state.timeLeft = pomodoro.settings.longBreakTime;
+      pomodoroCard.classList.add('timer-break');
+      timerStatus.textContent = "Time for a long break!";
+    }
 
-      function resetTimer() {
-        pauseTimer();
-        timeLeft = WORK_TIME;
-        updateDisplay();
-      }
-
-      function updateDisplay() {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-      }
-
-      // --- Event Listeners ---
-      timerHeader.addEventListener('click', () => {
-        timerContent.classList.toggle('open');
-      });
-
-      startBtn.addEventListener('click', startTimer);
-      pauseBtn.addEventListener('click', pauseTimer);
-      resetBtn.addEventListener('click', resetTimer);
+    updateDisplay();
+    updateCycleTracker();
   }
-};
+
+  function tick() {
+    pomodoro.state.timeLeft--;
+    updateDisplay();
+
+    if (pomodoro.state.timeLeft <= 0) {
+      pauseTimer();
+      alarmSound.play();
+
+      if (pomodoro.state.currentMode === 'work') {
+        pomodoro.state.sessions++;
+        if (pomodoro.state.sessions % pomodoro.settings.longBreakInterval === 0) {
+          switchMode('longBreak');
+        } else {
+          switchMode('shortBreak');
+        }
+      } else {
+        switchMode('work');
+      }
+    }
+  }
+
+  function startTimer() {
+    if (pomodoro.state.timerInterval) return;
+    timerStatus.textContent = 'Working...';
+    pomodoro.state.timerInterval = setInterval(tick, 1000);
+  }
+
+  function pauseTimer() {
+    clearInterval(pomodoro.state.timerInterval);
+    pomodoro.state.timerInterval = null;
+  }
+
+  function resetTimer() {
+    pauseTimer();
+    // Reset to the beginning of the current mode
+    switchMode(pomodoro.state.currentMode);
+  }
+
+  function updateDisplay() {
+    const minutes = Math.floor(pomodoro.state.timeLeft / 60);
+    const seconds = pomodoro.state.timeLeft % 60;
+    timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    document.title = `${timerDisplay.textContent} - ${pomodoro.state.currentMode}`;
+  }
+
+  function updateCycleTracker() {
+    cycleTracker.innerHTML = '';
+    for (let i = 0; i < pomodoro.settings.longBreakInterval; i++) {
+      const dot = document.createElement('div');
+      dot.classList.add('cycle-dot');
+      if (i < pomodoro.state.sessions % pomodoro.settings.longBreakInterval) {
+        dot.classList.add('completed');
+      }
+      cycleTracker.appendChild(dot);
+    }
+  }
+
+  // --- Event Listeners ---
+  startBtn.addEventListener('click', startTimer);
+  pauseBtn.addEventListener('click', pauseTimer);
+  resetBtn.addEventListener('click', resetTimer);
+
+  // Initialize display on page load
+  updateDisplay();
+  updateCycleTracker();
+}
