@@ -39,7 +39,7 @@
   <div id="side-panel" class="side-panel">
     <div class="side-panel-header">
       <h3>✨ Toolkit</h3>
-      <button id="side-panel-close-btn" class="close-button">&times;</button>
+      <button id="side-panel-close-btn" class="close-button">×</button>
     </div>
     <div class="side-panel-content">
       <div id="focus-dashboard" class="card">
@@ -63,7 +63,7 @@
           </div>
           <div id="music-controls" class="music-controls">
             <div class="playlist-buttons">
-              <button class="playlist-btn" data-video-id="jfKfPfyJRdk">Lofi Beats</button>
+              <button class="playlist-btn active" data-video-id="jfKfPfyJRdk">Lofi Beats</button>
               <button class="playlist-btn" data-video-id="wB3q_c4014k">Classical</button>
               <button class="playlist-btn" data-video-id="n61ULEU7CO0">Rain Sounds</button>
               <button id="stop-music-btn" class="playlist-btn stop-btn">Stop Music</button>
@@ -78,23 +78,59 @@
   </div>
 
   <audio id="alarm-sound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+  
   <div id="settings-modal" class="modal-overlay">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h2>Timer Settings</h2>
-              <button id="close-modal-btn" class="close-button">&times;</button>
-          </div>
-          <form id="settings-form">
-              <div class="form-group"><label for="work-time-slider">Work</label><div class="slider-container"><input type="range" id="work-time-slider" min="15" max="75" value="25" step="5"><span id="work-time-value" class="slider-value">25</span><span class="unit-label">min</span></div></div>
-              <div class="form-group"><label for="short-break-slider">Short Break</label><div class="slider-container"><input type="range" id="short-break-slider" min="5" max="20" value="5" step="5"><span id="short-break-value" class="slider-value">5</span><span class="unit-label">min</span></div></div>
-              <div class="form-group"><label for="long-break-slider">Long Break</label><div class="slider-container"><input type="range" id="long-break-slider" min="10" max="45" value="15" step="5"><span id="long-break-value" class="slider-value">15</span><span class="unit-label">min</span></div></div>
-              <div class="form-group"><label for="long-break-interval-slider">Sessions before long break</label><div class="slider-container"><input type="range" id="long-break-interval-slider" min="2" max="6" value="4"><span id="long-break-interval-value" class="slider-value">4</span><span class="unit-label">sessions</span></div></div>
-              <div class="form-actions"><button type="submit" class="save-button">Save Settings</button></div>
-          </form>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Timer Settings</h2>
+        <button id="close-modal-btn" class="close-button">×</button>
       </div>
+      <form id="settings-form">
+        <div class="form-group">
+          <label for="work-time-slider">Work</label>
+          <div class="slider-container">
+            <input type="range" id="work-time-slider" min="15" max="75" value="25" step="5">
+            <span id="work-time-value" class="slider-value">25</span>
+            <span class="unit-label">min</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="short-break-slider">Short Break</label>
+          <div class="slider-container">
+            <input type="range" id="short-break-slider" min="5" max="20" value="5" step="5">
+            <span id="short-break-value" class="slider-value">5</span>
+            <span class="unit-label">min</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="long-break-slider">Long Break</label>
+          <div class="slider-container">
+            <input type="range" id="long-break-slider" min="10" max="45" value="15" step="5">
+            <span id="long-break-value" class="slider-value">15</span>
+            <span class="unit-label">min</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="long-break-interval-slider">Sessions before long break</label>
+          <div class="slider-container">
+            <input type="range" id="long-break-interval-slider" min="2" max="6" value="4">
+            <span id="long-break-interval-value" class="slider-value">4</span>
+            <span class="unit-label">sessions</span>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="save-button">Save Settings</button>
+        </div>
+      </form>
+    </div>
   </div>
+  
   <div id="logout-confirm" class="confirm-popup" style="display: none;">
-      <div class="confirm-box"><p>Are you sure you want to log out?</p><button id="confirm-yes" class="confirm-yes">Yes</button><button id="confirm-no" class="confirm-no">No</button></div>
+    <div class="confirm-box">
+      <p>Are you sure you want to log out?</p>
+      <button id="confirm-yes" class="confirm-yes">Yes</button>
+      <button id="confirm-no" class="confirm-no">No</button>
+    </div>
   </div>
   
   <script>
@@ -107,5 +143,42 @@
     });
   </script>
   <script src="main.js"></script>
+  <script>
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      // Block print screen, dev tools, copy/paste, print
+      if (
+        e.key === 'PrintScreen' ||
+        (e.ctrlKey && ['u', 's', 'p', 'c', 'x', 'a'].includes(e.key.toLowerCase())) ||
+        (e.metaKey && ['u', 's', 'p', 'c', 'x', 'a'].includes(e.key.toLowerCase())) ||
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') // Ctrl+Shift+I (inspect)
+      ) {
+        e.preventDefault();
+      }
+    });
+  </script>
+  <script>
+    document.addEventListener('keydown', e => {
+      if (
+        e.key === 'PrintScreen' ||
+        (e.ctrlKey && e.key.toLowerCase() === 'p')
+      ) {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = 0;
+        overlay.style.left = 0;
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'black';
+        overlay.style.opacity = 0.98;
+        overlay.style.zIndex = 999999;
+        document.body.appendChild(overlay);
+        setTimeout(() => document.body.removeChild(overlay), 3000);
+      }
+    });
+  </script>
+
 </body>
 </html>

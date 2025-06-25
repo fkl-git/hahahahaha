@@ -542,14 +542,32 @@ input[type=range]::-moz-range-thumb {
 }
 
 .playlist-buttons {
-  display: flex;
+  display: flex; /* THIS WAS THE MISSING PIECE for the button alignment */
+  flex-wrap: wrap; 
   gap: 10px;
   margin-bottom: 15px;
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
 }
-body.dark-mode .playlist-buttons {
-    border-bottom-color: #333;
+
+.side-panel {
+  position: fixed;
+  top: 0;
+  /* MODIFIED: Changed right: 0 to ensure it's always on the edge of the viewport */
+  right: 0; 
+  height: 100vh; /* Use 100vh to ensure it's full screen height */
+  width: 360px;
+  max-width: 90%;
+  background-color: #fff;
+  border-left: 1px solid #e0e0e0;
+  box-shadow: -4px 0 15px rgba(0,0,0,0.05);
+  z-index: 1000;
+
+  transform: translateX(100%); 
+  transition: transform 0.3s ease-in-out;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .playlist-btn {
