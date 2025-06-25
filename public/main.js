@@ -28,7 +28,13 @@ async function login() {
 }
 
 async function loadResources() {
+  // Get the container where we will place the cards
   const grid = document.querySelector('.grid-container');
+  // NOTE: I've moved the creation of the timer card OUT of this function
+  // so that it doesn't get re-created every time resources are loaded.
+  // The timer card is now permanently in your index.html.
+
+  // Clear only the resource cards, not the timer
   const resourceCards = grid.querySelectorAll('.resource-card');
   resourceCards.forEach(card => card.remove());
 
@@ -36,10 +42,11 @@ async function loadResources() {
     const response = await fetch('/api/resources');
     const resourceCategories = await response.json();
 
-    let allCardsHTML = ''; 
     for (const categoryName in resourceCategories) {
-      let cardHTML = `<div class="card resource-card"><h2>${categoryName}</h2>`;
+      const card = document.createElement('div');
+      card.className = 'card resource-card'; // Added a specific class
 
+      let cardHTML = `<h2>${categoryName}</h2>`;
       const links = resourceCategories[categoryName];
       links.forEach(link => {
         cardHTML += `
@@ -50,12 +57,9 @@ async function loadResources() {
           </p>
         `;
       });
-      cardHTML += `</div>`;
-      allCardsHTML += cardHTML;
+      card.innerHTML = cardHTML;
+      grid.appendChild(card);
     }
-
-    grid.insertAdjacentHTML('beforeend', allCardsHTML);
-
   } catch (error) {
     console.error("Failed to load resources:", error);
   }
@@ -94,15 +98,18 @@ window.onload = function () {
     } else {
       alert("Logout failed: " + data.message);
     }
+    // Simple page reload to reset state
     window.location.reload();
   });
 
   // ===============================================
-  // === FINAL "ALL-OUT" POMODORO TIMER LOGIC ======
+  // === POMODORO TIMER LOGIC (NOW IN THE RIGHT PLACE) ===
   // ===============================================
-  const pomodoroCard = document.getElementById('pomodoro-card');
-  if (pomodoroCard) {
 
+  const pomodoroCard = document.getElementById('pomodoro-card');
+  if (pomodoroCard) { // Only run if the timer card exists on the page
+
+    // --- Get all DOM Elements ---
     const timerModeTitle = document.getElementById('timer-mode-title');
     const timerStatus = document.getElementById('timer-status');
     const timerDisplay = document.getElementById('timer-display');
@@ -116,6 +123,7 @@ window.onload = function () {
     const closeModalBtn = document.getElementById('close-modal-btn');
     const settingsForm = document.getElementById('settings-form');
 
+    // --- Main Pomodoro Object ---
     const pomodoro = {
       settings: {
         workTime: 25,
@@ -131,9 +139,11 @@ window.onload = function () {
       }
     };
 
+    // --- Core Functions ---
     function switchMode(mode) {
       pomodoro.state.currentMode = mode;
       pomodoroCard.className = 'card';
+
       if (mode === 'work') {
         pomodoro.state.timeLeft = pomodoro.settings.workTime * 60;
         pomodoroCard.classList.add('timer-work');
@@ -147,6 +157,7 @@ window.onload = function () {
         pomodoroCard.classList.add('timer-break');
         timerStatus.textContent = "Time for a long break!";
       }
+
       updateDisplay();
       updateCycleTracker();
     }
@@ -154,6 +165,7 @@ window.onload = function () {
     function tick() {
       pomodoro.state.timeLeft--;
       updateDisplay();
+
       if (pomodoro.state.timeLeft < 0) {
         pauseTimer();
         alarmSound.play();
@@ -200,13 +212,14 @@ window.onload = function () {
         dot.classList.add('cycle-dot');
         if (pomodoro.state.currentMode !== 'work' && i < sessionsInCurrentCycle) {
           dot.classList.add('completed');
-        } else if (pomoro.state.currentMode === 'work' && i < sessionsInCurrentCycle) {
+        } else if (pomodoro.state.currentMode === 'work' && i < sessionsInCurrentCycle) {
           dot.classList.add('completed');
         }
         cycleTracker.appendChild(dot);
       }
     }
 
+    // --- Settings and Local Storage ---
     function saveSettings() {
       localStorage.setItem('pomodoroSettings', JSON.stringify(pomodoro.settings));
     }
@@ -216,6 +229,7 @@ window.onload = function () {
       if (savedSettings) {
         pomodoro.settings = savedSettings;
       }
+      // Update form inputs to reflect loaded settings
       settingsForm.elements['work-time'].value = pomodoro.settings.workTime;
       settingsForm.elements['short-break-time'].value = pomodoro.settings.shortBreakTime;
       settingsForm.elements['long-break-time'].value = pomodoro.settings.longBreakTime;
@@ -244,15 +258,11 @@ window.onload = function () {
 
       saveSettings();
       settingsModal.classList.remove('open');
-      resetTimer();
+      resetTimer(); // Apply new settings immediately
     });
 
-    // --- THIS IS THE CRITICAL CHANGE ---
-    // Initialize Timer only after the page is stable and not busy
-    setTimeout(() => {
-      loadSettings();
-      resetTimer();
-    }, 100); // A tiny 100ms delay is enough for the browser to catch its breath
-
-  } // End of if(pomodoroCard)
-};
+    // --- Initialize Timer on Page Load ---
+    loadSettings();
+    resetTimer();
+  }
+  };
