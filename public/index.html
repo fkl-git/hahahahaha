@@ -112,21 +112,41 @@
       </div>
       <form id="settings-form">
         <div class="form-group">
-          <label for="work-time">Work (minutes)</label>
-          <input type="number" id="work-time" min="1" value="25">
+          <label for="work-time-slider">Work</label>
+          <div class="slider-container">
+            <input type="range" id="work-time-slider" min="15" max="75" value="25">
+            <span id="work-time-value" class="slider-value">25</span>
+            <span class="unit-label">min</span>
+          </div>
         </div>
+
         <div class="form-group">
-          <label for="short-break-time">Short Break (minutes)</label>
-          <input type="number" id="short-break-time" min="1" value="5">
+          <label for="short-break-slider">Short Break</label>
+          <div class="slider-container">
+            <input type="range" id="short-break-slider" min="1" max="20" value="5">
+            <span id="short-break-value" class="slider-value">5</span>
+            <span class="unit-label">min</span>
+          </div>
         </div>
+
         <div class="form-group">
-          <label for="long-break-time">Long Break (minutes)</label>
-          <input type="number" id="long-break-time" min="1" value="15">
+          <label for="long-break-slider">Long Break</label>
+          <div class="slider-container">
+            <input type="range" id="long-break-slider" min="10" max="45" value="15">
+            <span id="long-break-value" class="slider-value">15</span>
+            <span class="unit-label">min</span>
+          </div>
         </div>
+
         <div class="form-group">
-          <label for="long-break-interval">Sessions before long break</label>
-          <input type="number" id="long-break-interval" min="1" value="4">
+          <label for="long-break-interval-slider">Sessions before long break</label>
+          <div class="slider-container">
+            <input type="range" id="long-break-interval-slider" min="2" max="6" value="4">
+            <span id="long-break-interval-value" class="slider-value">4</span>
+             <span class="unit-label">sessions</span>
+          </div>
         </div>
+
         <div class="form-actions">
           <button type="submit" class="save-button">Save Settings</button>
         </div>

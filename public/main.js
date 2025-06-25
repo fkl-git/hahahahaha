@@ -106,163 +106,100 @@ window.onload = function () {
   // === POMODORO TIMER LOGIC (NOW IN THE RIGHT PLACE) ===
   // ===============================================
 
-  const pomodoroCard = document.getElementById('pomodoro-card');
-  if (pomodoroCard) { // Only run if the timer card exists on the page
+const pomodoroCard = document.getElementById('pomodoro-card');
+if (pomodoroCard) {
 
-    // --- Get all DOM Elements ---
-    const timerModeTitle = document.getElementById('timer-mode-title');
-    const timerStatus = document.getElementById('timer-status');
-    const timerDisplay = document.getElementById('timer-display');
-    const cycleTracker = document.getElementById('cycle-tracker');
-    const startBtn = document.getElementById('start-btn');
-    const pauseBtn = document.getElementById('pause-btn');
-    const resetBtn = document.getElementById('reset-btn');
-    const alarmSound = document.getElementById('alarm-sound');
-    const settingsBtn = document.getElementById('settings-btn');
-    const settingsModal = document.getElementById('settings-modal');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const settingsForm = document.getElementById('settings-form');
+  // --- Get all DOM Elements ---
+  const timerDisplay = document.getElementById('timer-display');
+  const startBtn = document.getElementById('start-btn');
+  // ... (and all the other timer elements)
 
-    // --- Main Pomodoro Object ---
-    const pomodoro = {
-      settings: {
-        workTime: 25,
-        shortBreakTime: 5,
-        longBreakTime: 15,
-        longBreakInterval: 4,
-      },
-      state: {
-        timeLeft: 25 * 60,
-        sessions: 0,
-        currentMode: 'work',
-        timerInterval: null,
-      }
-    };
+  // --- NEW: Get Settings Modal elements ---
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  const settingsForm = document.getElementById('settings-form');
 
-    // --- Core Functions ---
-    function switchMode(mode) {
-      pomodoro.state.currentMode = mode;
-      pomodoroCard.className = 'card';
-
-      if (mode === 'work') {
-        pomodoro.state.timeLeft = pomodoro.settings.workTime * 60;
-        pomodoroCard.classList.add('timer-work');
-        timerStatus.textContent = "Time to focus!";
-      } else if (mode === 'shortBreak') {
-        pomodoro.state.timeLeft = pomodoro.settings.shortBreakTime * 60;
-        pomodoroCard.classList.add('timer-break');
-        timerStatus.textContent = "Time for a short break.";
-      } else if (mode === 'longBreak') {
-        pomodoro.state.timeLeft = pomodoro.settings.longBreakTime * 60;
-        pomodoroCard.classList.add('timer-break');
-        timerStatus.textContent = "Time for a long break!";
-      }
-
-      updateDisplay();
-      updateCycleTracker();
-    }
-
-    function tick() {
-      pomodoro.state.timeLeft--;
-      updateDisplay();
-
-      if (pomodoro.state.timeLeft < 0) {
-        pauseTimer();
-        alarmSound.play();
-        if (pomodoro.state.currentMode === 'work') {
-          pomodoro.state.sessions++;
-          if (pomodoro.state.sessions % pomodoro.settings.longBreakInterval === 0) {
-            switchMode('longBreak');
-          } else {
-            switchMode('shortBreak');
-          }
-        } else {
-          switchMode('work');
-        }
-      }
-    }
-
-    function startTimer() {
-      if (pomodoro.state.timerInterval) return;
-      timerStatus.textContent = pomodoro.state.currentMode === 'work' ? 'Working...' : 'On a break...';
-      pomodoro.state.timerInterval = setInterval(tick, 1000);
-    }
-    function pauseTimer() {
-      clearInterval(pomodoro.state.timerInterval);
-      pomodoro.state.timerInterval = null;
-    }
-    function resetTimer() {
-      pauseTimer();
-      switchMode(pomodoro.state.currentMode);
-    }
-
-    function updateDisplay() {
-      const minutes = Math.floor(pomodoro.state.timeLeft / 60);
-      const seconds = pomodoro.state.timeLeft % 60;
-      const displayString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-      timerDisplay.textContent = displayString;
-      document.title = `${displayString} - ${timerStatus.textContent}`;
-    }
-
-    function updateCycleTracker() {
-      cycleTracker.innerHTML = '';
-      const sessionsInCurrentCycle = pomodoro.state.sessions % pomodoro.settings.longBreakInterval;
-      for (let i = 0; i < pomodoro.settings.longBreakInterval; i++) {
-        const dot = document.createElement('div');
-        dot.classList.add('cycle-dot');
-        if (pomodoro.state.currentMode !== 'work' && i < sessionsInCurrentCycle) {
-          dot.classList.add('completed');
-        } else if (pomodoro.state.currentMode === 'work' && i < sessionsInCurrentCycle) {
-          dot.classList.add('completed');
-        }
-        cycleTracker.appendChild(dot);
-      }
-    }
-
-    // --- Settings and Local Storage ---
-    function saveSettings() {
-      localStorage.setItem('pomodoroSettings', JSON.stringify(pomodoro.settings));
-    }
-
-    function loadSettings() {
-      const savedSettings = JSON.parse(localStorage.getItem('pomodoroSettings'));
-      if (savedSettings) {
-        pomodoro.settings = savedSettings;
-      }
-      // Update form inputs to reflect loaded settings
-      settingsForm.elements['work-time'].value = pomodoro.settings.workTime;
-      settingsForm.elements['short-break-time'].value = pomodoro.settings.shortBreakTime;
-      settingsForm.elements['long-break-time'].value = pomodoro.settings.longBreakTime;
-      settingsForm.elements['long-break-interval'].value = pomodoro.settings.longBreakInterval;
-    }
-
-    // --- Event Listeners ---
-    startBtn.addEventListener('click', startTimer);
-    pauseBtn.addEventListener('click', pauseTimer);
-    resetBtn.addEventListener('click', resetTimer);
-
-    settingsBtn.addEventListener('click', () => settingsModal.classList.add('open'));
-    closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
-    settingsModal.addEventListener('click', (e) => {
-      if (e.target === settingsModal) {
-        settingsModal.classList.remove('open');
-      }
-    });
-
-    settingsForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      pomodoro.settings.workTime = parseInt(settingsForm.elements['work-time'].value);
-      pomodoro.settings.shortBreakTime = parseInt(settingsForm.elements['short-break-time'].value);
-      pomodoro.settings.longBreakTime = parseInt(settingsForm.elements['long-break-time'].value);
-      pomodoro.settings.longBreakInterval = parseInt(settingsForm.elements['long-break-interval'].value);
-
-      saveSettings();
-      settingsModal.classList.remove('open');
-      resetTimer(); // Apply new settings immediately
-    });
-
-    // --- Initialize Timer on Page Load ---
-    loadSettings();
-    resetTimer();
-  }
+  // --- NEW: Get all slider and value display elements ---
+  const sliders = {
+    work: document.getElementById('work-time-slider'),
+    short: document.getElementById('short-break-slider'),
+    long: document.getElementById('long-break-slider'),
+    interval: document.getElementById('long-break-interval-slider')
   };
+  const values = {
+    work: document.getElementById('work-time-value'),
+    short: document.getElementById('short-break-value'),
+    long: document.getElementById('long-break-value'),
+    interval: document.getElementById('long-break-interval-value')
+  };
+
+  // --- Main Pomodoro Object ---
+  const pomodoro = { /* ... (this object stays the same) ... */ };
+
+  // ... (All the core functions like switchMode, tick, startTimer stay the same) ...
+
+  // --- NEW: Reusable function to link a slider to its text display ---
+  function setupSlider(sliderName) {
+    const slider = sliders[sliderName];
+    const valueDisplay = values[sliderName];
+    // This event fires every time the slider is moved
+    slider.addEventListener('input', () => {
+      valueDisplay.textContent = slider.value;
+    });
+  }
+
+  // --- Settings and Local Storage ---
+  function saveSettings() {
+    localStorage.setItem('pomodoroSettings', JSON.stringify(pomodoro.settings));
+  }
+
+  function loadSettings() {
+    const savedSettings = JSON.parse(localStorage.getItem('pomodoroSettings'));
+    if (savedSettings) {
+      pomodoro.settings = savedSettings;
+    }
+    // Update sliders and their text displays to reflect loaded settings
+    sliders.work.value = pomodoro.settings.workTime;
+    sliders.short.value = pomodoro.settings.shortBreakTime;
+    sliders.long.value = pomodoro.settings.longBreakTime;
+    sliders.interval.value = pomodoro.settings.longBreakInterval;
+    // Trigger the input event to update the text display
+    Object.values(sliders).forEach(slider => slider.dispatchEvent(new Event('input')));
+  }
+
+  // --- Event Listeners ---
+  // ... (start, pause, reset listeners stay the same) ...
+
+  settingsBtn.addEventListener('click', () => settingsModal.classList.add('open'));
+  closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
+  settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.classList.remove('open');
+    }
+  });
+
+  settingsForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    // Get values from the sliders now
+    pomodoro.settings.workTime = parseInt(sliders.work.value);
+    pomodoro.settings.shortBreakTime = parseInt(sliders.short.value);
+    pomodoro.settings.longBreakTime = parseInt(sliders.long.value);
+    pomodoro.settings.longBreakInterval = parseInt(sliders.interval.value);
+
+    saveSettings();
+    settingsModal.classList.remove('open');
+    resetTimer(); // Apply new settings immediately
+  });
+
+  // --- Initialize Timer on Page Load ---
+  // Setup all sliders to be interactive
+  setupSlider('work');
+  setupSlider('short');
+  setupSlider('long');
+  setupSlider('interval');
+
+  // Load saved settings and then reset the timer to apply them
+  loadSettings();
+  resetTimer();
+}

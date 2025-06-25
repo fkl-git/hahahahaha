@@ -396,27 +396,26 @@ body.dark-mode #pomodoro-card.timer-break {
   left: 0; top: 0;
   width: 100%; height: 100%;
   background-color: rgba(0,0,0,0.6);
-  backdrop-filter: blur(2px); /* Adds a nice frosted glass effect to the background */
+  backdrop-filter: blur(2px);
   justify-content: center;
   align-items: center;
-  opacity: 0; /* Start invisible for fade-in */
+  opacity: 0;
   transition: opacity 0.2s ease-in-out;
 }
 .modal-overlay.open {
   display: flex;
-  opacity: 1; /* Fade in when 'open' class is added */
+  opacity: 1;
 }
-
 .modal-content {
   background: white;
-  padding: 25px 30px; /* Slightly more horizontal padding */
+  padding: 25px 30px;
   border-radius: 12px;
   width: 90%;
-  max-width: 450px; /* A bit wider to give content space */
+  max-width: 500px; /* Wider for sliders */
   box-shadow: 0 5px 20px rgba(0,0,0,0.2);
 }
 body.dark-mode .modal-content {
-  background: #252525;
+  background: #2c2c2c;
 }
 
 .modal-header {
@@ -425,7 +424,7 @@ body.dark-mode .modal-content {
   align-items: center;
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
-  margin-bottom: 25px; /* Increased space below header */
+  margin-bottom: 25px;
 }
 body.dark-mode .modal-header {
   border-bottom-color: #444;
@@ -433,45 +432,95 @@ body.dark-mode .modal-header {
 .modal-header h2 {
   margin: 0;
   font-size: 1.25rem;
-  font-weight: 600; /* MODIFIED: Made the title bolder */
+  font-weight: 600;
 }
 .close-button {
   background: none; border: none; font-size: 2rem;
   line-height: 1; color: #aaa; cursor: pointer;
 }
 
+/* New styles for the slider layout */
 .form-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px; /* MODIFIED: Increased spacing between rows */
+  margin-bottom: 25px;
 }
 .form-group label {
   font-size: 0.95em;
-  color: #555; /* MODIFIED: Softened the label color */
+  color: #555;
+  display: block; /* Make label take its own line */
+  margin-bottom: 12px;
 }
 body.dark-mode .form-group label {
-    color: #bbb;
+  color: #bbb;
 }
-.form-group input {
-  width: 80px;
-  margin: 0;
-  text-align: center;
-  font-size: 1em;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
-body.dark-mode .form-group input {
-    border-color: #555;
-    background-color: #333;
+.slider-value {
+  font-weight: 600;
+  font-size: 1.1em;
+  min-width: 30px;
+  text-align: right;
+}
+.unit-label {
+    font-size: 0.85em;
+    color: #888;
+}
+body.dark-mode .unit-label {
+    color: #aaa;
+}
+
+/* Styling the slider track and thumb */
+input[type=range] {
+  flex-grow: 1;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type=range]:focus {
+  outline: none;
+}
+/* Chrome, Safari, Opera, Edge */
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+}
+body.dark-mode input[type=range]::-webkit-slider-runnable-track {
+    background: #444;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #007aff;
+  margin-top: -6px; /* Vertically center the thumb */
+}
+/* Firefox */
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+}
+body.dark-mode input[type=range]::-moz-range-track {
+    background: #444;
+}
+input[type=range]::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #007aff;
+  border: none;
 }
 
 .form-actions {
   text-align: right;
-  margin-top: 30px; /* Increased space above the save button */
+  margin-top: 30px;
 }
-
-/* MODIFIED: The save button now matches the primary timer button style */
 .save-button {
   min-width: 120px;
   border: 1px solid #007aff;
