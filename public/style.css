@@ -390,66 +390,96 @@ body.dark-mode #pomodoro-card.timer-break {
 
 /* --- Settings Modal Styles --- */
 .modal-overlay {
-  display: none; /* Hidden by default */
+  display: none;
   position: fixed;
   z-index: 1000;
   left: 0; top: 0;
   width: 100%; height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px); /* Adds a nice frosted glass effect to the background */
   justify-content: center;
   align-items: center;
+  opacity: 0; /* Start invisible for fade-in */
+  transition: opacity 0.2s ease-in-out;
 }
 .modal-overlay.open {
-  display: flex; /* Shown with this class */
+  display: flex;
+  opacity: 1; /* Fade in when 'open' class is added */
 }
+
 .modal-content {
   background: white;
-  padding: 25px;
+  padding: 25px 30px; /* Slightly more horizontal padding */
   border-radius: 12px;
   width: 90%;
-  max-width: 400px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  max-width: 450px; /* A bit wider to give content space */
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
 }
 body.dark-mode .modal-content {
-  background: #2c2c2c;
+  background: #252525;
 }
+
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #eee;
   padding-bottom: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 25px; /* Increased space below header */
 }
 body.dark-mode .modal-header {
-    border-bottom-color: #444;
+  border-bottom-color: #444;
 }
 .modal-header h2 {
   margin: 0;
   font-size: 1.25rem;
+  font-weight: 600; /* MODIFIED: Made the title bolder */
 }
 .close-button {
   background: none; border: none; font-size: 2rem;
   line-height: 1; color: #aaa; cursor: pointer;
 }
+
 .form-group {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px; /* MODIFIED: Increased spacing between rows */
 }
 .form-group label {
   font-size: 0.95em;
+  color: #555; /* MODIFIED: Softened the label color */
+}
+body.dark-mode .form-group label {
+    color: #bbb;
 }
 .form-group input {
   width: 80px;
   margin: 0;
   text-align: center;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
 }
+body.dark-mode .form-group input {
+    border-color: #555;
+    background-color: #333;
+}
+
 .form-actions {
   text-align: right;
-  margin-top: 25px;
+  margin-top: 30px; /* Increased space above the save button */
 }
+
+/* MODIFIED: The save button now matches the primary timer button style */
 .save-button {
+  min-width: 120px;
+  border: 1px solid #007aff;
   background-color: #007aff;
+  color: white;
+  font-weight: 600;
+}
+.save-button:hover {
+  background-color: #005bb5;
+  border-color: #005bb5;
 }
