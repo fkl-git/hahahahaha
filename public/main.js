@@ -203,3 +203,4 @@ if (pomodoroCard) {
   loadSettings();
   resetTimer();
 }
+  };
