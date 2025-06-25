@@ -220,3 +220,4 @@ if (pomodoroCard) { // Only run if the timer card exists on the page
   updateDisplay();
   updateCycleTracker();
 }
+  };
