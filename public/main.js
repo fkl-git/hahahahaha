@@ -27,11 +27,8 @@ async function login() {
   }
 }
 
-// === OPTIMIZED VERSION OF THIS FUNCTION ===
 async function loadResources() {
   const grid = document.querySelector('.grid-container');
-
-  // Clear only the resource cards, not the timer
   const resourceCards = grid.querySelectorAll('.resource-card');
   resourceCards.forEach(card => card.remove());
 
@@ -39,10 +36,9 @@ async function loadResources() {
     const response = await fetch('/api/resources');
     const resourceCategories = await response.json();
 
-    // 1. Build one giant HTML string in the background
     let allCardsHTML = ''; 
     for (const categoryName in resourceCategories) {
-      let cardHTML = `<div class="card resource-card"><h2>${categoryName}</h2>`; // Start the card
+      let cardHTML = `<div class="card resource-card"><h2>${categoryName}</h2>`;
 
       const links = resourceCategories[categoryName];
       links.forEach(link => {
@@ -54,11 +50,10 @@ async function loadResources() {
           </p>
         `;
       });
-      cardHTML += `</div>`; // Close the card
-      allCardsHTML += cardHTML; // Add this card's HTML to the master string
+      cardHTML += `</div>`;
+      allCardsHTML += cardHTML;
     }
 
-    // 2. Add the entire HTML string to the page just ONCE. This is much faster.
     grid.insertAdjacentHTML('beforeend', allCardsHTML);
 
   } catch (error) {
@@ -108,7 +103,6 @@ window.onload = function () {
   const pomodoroCard = document.getElementById('pomodoro-card');
   if (pomodoroCard) {
 
-    // --- Get all DOM Elements ---
     const timerModeTitle = document.getElementById('timer-mode-title');
     const timerStatus = document.getElementById('timer-status');
     const timerDisplay = document.getElementById('timer-display');
@@ -122,7 +116,6 @@ window.onload = function () {
     const closeModalBtn = document.getElementById('close-modal-btn');
     const settingsForm = document.getElementById('settings-form');
 
-    // --- Main Pomodoro Object ---
     const pomodoro = {
       settings: {
         workTime: 25,
@@ -138,7 +131,6 @@ window.onload = function () {
       }
     };
 
-    // --- Core Functions ---
     function switchMode(mode) {
       pomodoro.state.currentMode = mode;
       pomodoroCard.className = 'card';
@@ -208,14 +200,13 @@ window.onload = function () {
         dot.classList.add('cycle-dot');
         if (pomodoro.state.currentMode !== 'work' && i < sessionsInCurrentCycle) {
           dot.classList.add('completed');
-        } else if (pomodoro.state.currentMode === 'work' && i < sessionsInCurrentCycle) {
+        } else if (pomoro.state.currentMode === 'work' && i < sessionsInCurrentCycle) {
           dot.classList.add('completed');
         }
         cycleTracker.appendChild(dot);
       }
     }
 
-    // --- Settings and Local Storage ---
     function saveSettings() {
       localStorage.setItem('pomodoroSettings', JSON.stringify(pomodoro.settings));
     }
@@ -253,11 +244,15 @@ window.onload = function () {
 
       saveSettings();
       settingsModal.classList.remove('open');
-      resetTimer(); // Apply new settings immediately
+      resetTimer();
     });
 
-    // --- Initialize Timer on Page Load ---
-    loadSettings();
-    resetTimer();
-  }
+    // --- THIS IS THE CRITICAL CHANGE ---
+    // Initialize Timer only after the page is stable and not busy
+    setTimeout(() => {
+      loadSettings();
+      resetTimer();
+    }, 100); // A tiny 100ms delay is enough for the browser to catch its breath
+
+  } // End of if(pomodoroCard)
 };
