@@ -100,15 +100,17 @@ window.onload = function () {
   // ===============================================
   const toolkitToggleBtn = document.getElementById('toolkit-toggle-btn');
   const sidePanel = document.getElementById('side-panel');
+  const overlay = document.getElementById('overlay');
   const sidePanelCloseBtn = document.getElementById('side-panel-close-btn');
   const contentContainer = document.getElementById('content-container');
   const loginContainer = document.getElementById('login-container');
 
   function toggleToolkit() {
     sidePanel.classList.toggle('open');
-    contentContainer.classList.toggle('content-shifted');
-    loginContainer.classList.toggle('content-shifted');
+    overlay.classList.toggle('open'); // <-- ADD THIS LINE
   }
+  if(overlay) overlay.addEventListener('click', toggleToolkit);
+
 
   if(toolkitToggleBtn) toolkitToggleBtn.addEventListener('click', toggleToolkit);
   if(sidePanelCloseBtn) sidePanelCloseBtn.addEventListener('click', toggleToolkit);
