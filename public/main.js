@@ -27,12 +27,9 @@ async function login() {
   }
 }
 
+// === OPTIMIZED VERSION OF THIS FUNCTION ===
 async function loadResources() {
-  // Get the container where we will place the cards
   const grid = document.querySelector('.grid-container');
-  // NOTE: I've moved the creation of the timer card OUT of this function
-  // so that it doesn't get re-created every time resources are loaded.
-  // The timer card is now permanently in your index.html.
 
   // Clear only the resource cards, not the timer
   const resourceCards = grid.querySelectorAll('.resource-card');
@@ -42,11 +39,11 @@ async function loadResources() {
     const response = await fetch('/api/resources');
     const resourceCategories = await response.json();
 
+    // 1. Build one giant HTML string in the background
+    let allCardsHTML = ''; 
     for (const categoryName in resourceCategories) {
-      const card = document.createElement('div');
-      card.className = 'card resource-card'; // Added a specific class
+      let cardHTML = `<div class="card resource-card"><h2>${categoryName}</h2>`; // Start the card
 
-      let cardHTML = `<h2>${categoryName}</h2>`;
       const links = resourceCategories[categoryName];
       links.forEach(link => {
         cardHTML += `
@@ -57,9 +54,13 @@ async function loadResources() {
           </p>
         `;
       });
-      card.innerHTML = cardHTML;
-      grid.appendChild(card);
+      cardHTML += `</div>`; // Close the card
+      allCardsHTML += cardHTML; // Add this card's HTML to the master string
     }
+
+    // 2. Add the entire HTML string to the page just ONCE. This is much faster.
+    grid.insertAdjacentHTML('beforeend', allCardsHTML);
+
   } catch (error) {
     console.error("Failed to load resources:", error);
   }
@@ -98,16 +99,14 @@ window.onload = function () {
     } else {
       alert("Logout failed: " + data.message);
     }
-    // Simple page reload to reset state
     window.location.reload();
   });
 
   // ===============================================
-  // === POMODORO TIMER LOGIC (NOW IN THE RIGHT PLACE) ===
+  // === FINAL "ALL-OUT" POMODORO TIMER LOGIC ======
   // ===============================================
-
   const pomodoroCard = document.getElementById('pomodoro-card');
-  if (pomodoroCard) { // Only run if the timer card exists on the page
+  if (pomodoroCard) {
 
     // --- Get all DOM Elements ---
     const timerModeTitle = document.getElementById('timer-mode-title');
@@ -143,7 +142,6 @@ window.onload = function () {
     function switchMode(mode) {
       pomodoro.state.currentMode = mode;
       pomodoroCard.className = 'card';
-
       if (mode === 'work') {
         pomodoro.state.timeLeft = pomodoro.settings.workTime * 60;
         pomodoroCard.classList.add('timer-work');
@@ -157,7 +155,6 @@ window.onload = function () {
         pomodoroCard.classList.add('timer-break');
         timerStatus.textContent = "Time for a long break!";
       }
-
       updateDisplay();
       updateCycleTracker();
     }
@@ -165,7 +162,6 @@ window.onload = function () {
     function tick() {
       pomodoro.state.timeLeft--;
       updateDisplay();
-
       if (pomodoro.state.timeLeft < 0) {
         pauseTimer();
         alarmSound.play();
@@ -229,7 +225,6 @@ window.onload = function () {
       if (savedSettings) {
         pomodoro.settings = savedSettings;
       }
-      // Update form inputs to reflect loaded settings
       settingsForm.elements['work-time'].value = pomodoro.settings.workTime;
       settingsForm.elements['short-break-time'].value = pomodoro.settings.shortBreakTime;
       settingsForm.elements['long-break-time'].value = pomodoro.settings.longBreakTime;
@@ -265,4 +260,4 @@ window.onload = function () {
     loadSettings();
     resetTimer();
   }
-  };
+};
