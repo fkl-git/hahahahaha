@@ -32,7 +32,10 @@
   <div id="content-container" style="display: none;">
   <div class="grid-container">
     <div id="pomodoro-card" class="card timer-work"> <div id="timer-header" class="timer-card-header">
-      <h2 id="timer-mode-title">▶️ Study Timer</h2>
+      <div class="timer-title-container">
+        <h2 id="timer-mode-title">▶️ Study Timer</h2>
+      </div>
+      <button id="settings-btn" class="settings-button">⚙️</button>
     </div>
 
     <div id="timer-content" class="timer-card-content open"> <p id="timer-status">Time to focus!</p>
@@ -101,6 +104,35 @@
     }
   });
   </script>
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Timer Settings</h2>
+        <button id="close-modal-btn" class="close-button">&times;</button>
+      </div>
+      <form id="settings-form">
+        <div class="form-group">
+          <label for="work-time">Work (minutes)</label>
+          <input type="number" id="work-time" min="1" value="25">
+        </div>
+        <div class="form-group">
+          <label for="short-break-time">Short Break (minutes)</label>
+          <input type="number" id="short-break-time" min="1" value="5">
+        </div>
+        <div class="form-group">
+          <label for="long-break-time">Long Break (minutes)</label>
+          <input type="number" id="long-break-time" min="1" value="15">
+        </div>
+        <div class="form-group">
+          <label for="long-break-interval">Sessions before long break</label>
+          <input type="number" id="long-break-interval" min="1" value="4">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="save-button">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <div id="logout-confirm" class="confirm-popup" style="display: none;">
     <div class="confirm-box">
       <p>Are you sure you want to log out?</p>

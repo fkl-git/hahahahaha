@@ -286,38 +286,46 @@ white-space: nowrap;
 }
 
 .timer-card-header {
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: default; /* No longer clickable */
+  padding: 10px 15px;
   transition: background-color 0.3s;
+  border-bottom: 1px solid #e0e0e0;
+}
+body.dark-mode .timer-card-header {
+  border-bottom-color: #333;
 }
 
-/* By default, the timer content is visible */
+.settings-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
+}
+
 .timer-card-content {
   text-align: center;
-  padding: 10px 0 20px 0;
+  padding: 20px 0;
 }
 
-#timer-mode-title {
-  transition: color 0.3s;
-}
 #timer-status {
   margin: 0;
   font-size: 1em;
   color: #666;
-  height: 20px; /* Reserve space to prevent layout shifts */
-  transition: color 0.3s;
+  height: 20px;
 }
 body.dark-mode #timer-status {
     color: #aaa;
 }
 
-
 #timer-display {
-  font-size: 6rem;
-  font-weight: 300;
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 5.5rem;
+  font-weight: 200;
   margin: 10px 0;
-  transition: color 0.3s;
 }
 
 .cycle-tracker {
@@ -326,8 +334,8 @@ body.dark-mode #timer-status {
 }
 .cycle-dot {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   margin: 0 4px;
   background-color: #e0e0e0;
@@ -336,42 +344,112 @@ body.dark-mode #timer-status {
 body.dark-mode .cycle-dot {
     background-color: #444;
 }
-.cycle-dot.completed {
-  background-color: #007aff; /* Blue for completed cycles */
-}
 
 .timer-controls button {
   margin: 0 5px;
   min-width: 100px;
-  border: 1px solid transparent;
-  transition: all 0.3s;
+  border: 1px solid;
+  font-weight: 600;
 }
 
 /* --- State-Based Themeing --- */
-
-/* WORK MODE THEME */
 #pomodoro-card.timer-work {
   background-color: #fff;
 }
+body.dark-mode #pomodoro-card.timer-work {
+  background-color: #1e1e1e;
+}
 #pomodoro-card.timer-work .timer-controls button {
-  background-color: #007aff; /* Blue */
-  color: white;
+  background-color: transparent;
+  border-color: #007aff;
+  color: #007aff;
 }
 #pomodoro-card.timer-work .timer-controls button:hover {
-  background-color: #005bb5;
-}
-
-/* BREAK MODE THEME */
-#pomodoro-card.timer-break {
-  background-color: #edf7ed; /* Light green background */
-}
-body.dark-mode #pomodoro-card.timer-break {
-    background-color: #1a2d1a;
-}
-#pomodoro-card.timer-break .timer-controls button {
-  background-color: #28a745; /* Green */
+  background-color: #007aff;
   color: white;
 }
+
+#pomodoro-card.timer-break {
+  background-color: #f0fff0;
+}
+body.dark-mode #pomodoro-card.timer-break {
+  background-color: #1a2d1a;
+}
+#pomodoro-card.timer-break .timer-controls button {
+  background-color: transparent;
+  border-color: #28a745;
+  color: #28a745;
+}
 #pomodoro-card.timer-break .timer-controls button:hover {
-  background-color: #218838;
+  background-color: #28a745;
+  color: white;
+}
+#pomodoro-card.timer-break .cycle-dot.completed {
+    background-color: #28a745;
+}
+
+/* --- Settings Modal Styles --- */
+.modal-overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.open {
+  display: flex; /* Shown with this class */
+}
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+body.dark-mode .modal-content {
+  background: #2c2c2c;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+body.dark-mode .modal-header {
+    border-bottom-color: #444;
+}
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.close-button {
+  background: none; border: none; font-size: 2rem;
+  line-height: 1; color: #aaa; cursor: pointer;
+}
+.form-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.form-group label {
+  font-size: 0.95em;
+}
+.form-group input {
+  width: 80px;
+  margin: 0;
+  text-align: center;
+}
+.form-actions {
+  text-align: right;
+  margin-top: 25px;
+}
+.save-button {
+  background-color: #007aff;
 }
