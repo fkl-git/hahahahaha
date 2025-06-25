@@ -285,143 +285,313 @@ z-index: -1; /* MODIFIED: Set to -1 to place it behind other content */
 white-space: nowrap;
 }
 
-/* In style.css, replace ALL old timer and music styles with this */
-
-/* === UNIFIED FOCUS DASHBOARD STYLES === */
-#focus-dashboard {
-  /* This card will transition colors based on the mode */
-  transition: background-color 0.4s ease-in-out;
-}
-.dashboard-header {
+.timer-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  border-bottom: 1px solid #e9ecef;
+  cursor: default; /* No longer clickable */
+  padding: 10px 15px;
+  transition: background-color 0.3s;
+  border-bottom: 1px solid #e0e0e0;
 }
-body.dark-mode .dashboard-header {
-  border-bottom-color: #343a40;
-}
-.dashboard-header h2 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-.settings-button {
-  background: none; border: none; font-size: 1.5rem;
-  cursor: pointer; color: #6c757d;
+body.dark-mode .timer-card-header {
+  border-bottom-color: #333;
 }
 
-.dashboard-content {
-  padding: 25px 20px;
+.settings-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
+}
+
+.timer-card-content {
   text-align: center;
+  padding: 20px 0;
 }
+
 #timer-status {
-  margin: 0; font-size: 1em; color: #6c757d; height: 20px;
+  margin: 0;
+  font-size: 1em;
+  color: #666;
+  height: 20px;
 }
+body.dark-mode #timer-status {
+    color: #aaa;
+}
+
 #timer-display {
   font-family: 'Segoe UI', 'Roboto', sans-serif;
-  font-size: 6rem;
+  font-size: 5.5rem;
   font-weight: 200;
   margin: 10px 0;
-  letter-spacing: -2px;
 }
+
 .cycle-tracker {
-  height: 20px; margin-bottom: 25px;
+  height: 20px;
+  margin-bottom: 20px;
 }
 .cycle-dot {
-  display: inline-block; width: 10px; height: 10px;
-  border-radius: 50%; margin: 0 4px;
-  background-color: #dee2e6;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: 0 4px;
+  background-color: #e0e0e0;
   transition: background-color 0.3s;
 }
-body.dark-mode .cycle-dot { background-color: #495057; }
+body.dark-mode .cycle-dot {
+    background-color: #444;
+}
 
 .timer-controls button {
-  margin: 0 5px; min-width: 100px;
-  border: 1px solid; font-weight: 600;
-  border-radius: 50px; /* Pill-shaped buttons */
+  margin: 0 5px;
+  min-width: 100px;
+  border: 1px solid;
+  font-weight: 600;
 }
 
-/* --- Music Player Section --- */
-.music-section {
-  border-top: 1px solid #e9ecef;
+/* --- State-Based Themeing --- */
+#pomodoro-card.timer-work {
+  background-color: #fff;
 }
-body.dark-mode .music-section {
-  border-top-color: #343a40;
+body.dark-mode #pomodoro-card.timer-work {
+  background-color: #1e1e1e;
 }
-.music-toggle {
-  padding: 12px 20px;
-  cursor: pointer;
-  color: #6c757d;
-  font-weight: 500;
-  font-size: 0.9rem;
-  text-align: center;
+#pomodoro-card.timer-work .timer-controls button {
+  background-color: transparent;
+  border-color: #007aff;
+  color: #007aff;
 }
-.music-toggle:hover {
-  background-color: #f8f9fa;
-}
-body.dark-mode .music-toggle:hover {
-    background-color: #2c2f33;
-}
-.music-controls {
-  /* This creates the smooth collapse/expand animation */
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out;
-  padding: 0 20px;
-}
-.music-controls.open {
-  max-height: 500px; /* A large value to allow content to expand */
-  padding: 10px 20px 20px 20px;
-}
-.playlist-buttons {
-  display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;
-}
-.playlist-btn {
-  flex-grow: 1; background-color: #e9ecef; color: #495057;
-  border: none; border-radius: 50px; font-weight: 500;
-}
-body.dark-mode .playlist-btn {
-    background-color: #3a3f44;
-    color: #ced4da;
-}
-.playlist-btn.active {
+#pomodoro-card.timer-work .timer-controls button:hover {
+  background-color: #007aff;
   color: white;
 }
-.playlist-btn.stop-btn {
-    background-color: #6c757d;
-    color: white;
-}
-.video-player-container {
-  width: 100%; aspect-ratio: 16 / 9;
-  background-color: #000; border-radius: 8px;
-  overflow: hidden;
-}
-.video-player-container iframe {
-  width: 100%; height: 100%; border: none;
-}
 
-/* --- State-Based Theming for the Dashboard --- */
-#focus-dashboard.timer-work .cycle-dot.completed,
-#focus-dashboard.timer-work .playlist-btn.active {
-  background-color: #007bff;
+#pomodoro-card.timer-break {
+  background-color: #f0fff0;
 }
-#focus-dashboard.timer-work .timer-controls button {
-  background-color: transparent; border-color: #007bff; color: #007bff;
+body.dark-mode #pomodoro-card.timer-break {
+  background-color: #1a2d1a;
 }
-#focus-dashboard.timer-work .timer-controls button:hover {
-  background-color: #007bff; color: white;
+#pomodoro-card.timer-break .timer-controls button {
+  background-color: transparent;
+  border-color: #28a745;
+  color: #28a745;
 }
-#focus-dashboard.timer-break { background-color: #f0fff0; }
-body.dark-mode #focus-dashboard.timer-break { background-color: #1c2b20; }
-
-#focus-dashboard.timer-break .cycle-dot.completed,
-#focus-dashboard.timer-break .playlist-btn.active {
+#pomodoro-card.timer-break .timer-controls button:hover {
   background-color: #28a745;
+  color: white;
 }
-#focus-dashboard.timer-break .timer-controls button {
-  background-color: transparent; border-color: #28a745; color: #28a745;
+#pomodoro-card.timer-break .cycle-dot.completed {
+    background-color: #28a745;
 }
-#focus-dashboard.timer-break .timer-controls button:hover {
-  background-color: #28a745; color: white;
+
+/* --- Settings Modal Styles --- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  backdrop-filter: blur(2px);
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.modal-overlay.open {
+  display: flex;
+  opacity: 1;
+}
+.modal-content {
+  background: white;
+  padding: 25px 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px; /* Wider for sliders */
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+body.dark-mode .modal-content {
+  background: #2c2c2c;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+}
+body.dark-mode .modal-header {
+  border-bottom-color: #444;
+}
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.close-button {
+  background: none; border: none; font-size: 2rem;
+  line-height: 1; color: #aaa; cursor: pointer;
+}
+
+/* New styles for the slider layout */
+.form-group {
+  margin-bottom: 25px;
+}
+.form-group label {
+  font-size: 0.95em;
+  color: #555;
+  display: block; /* Make label take its own line */
+  margin-bottom: 12px;
+}
+body.dark-mode .form-group label {
+  color: #bbb;
+}
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.slider-value {
+  font-weight: 600;
+  font-size: 1.1em;
+  min-width: 30px;
+  text-align: right;
+}
+.unit-label {
+    font-size: 0.85em;
+    color: #888;
+}
+body.dark-mode .unit-label {
+    color: #aaa;
+}
+
+/* Styling the slider track and thumb */
+input[type=range] {
+  flex-grow: 1;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type=range]:focus {
+  outline: none;
+}
+/* Chrome, Safari, Opera, Edge */
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+}
+body.dark-mode input[type=range]::-webkit-slider-runnable-track {
+    background: #444;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #007aff;
+  margin-top: -6px; /* Vertically center the thumb */
+}
+/* Firefox */
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+}
+body.dark-mode input[type=range]::-moz-range-track {
+    background: #444;
+}
+input[type=range]::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #007aff;
+  border: none;
+}
+
+.form-actions {
+  text-align: right;
+  margin-top: 30px;
+}
+.save-button {
+  min-width: 120px;
+  border: 1px solid #007aff;
+  background-color: #007aff;
+  color: white;
+  font-weight: 600;
+}
+.save-button:hover {
+  background-color: #005bb5;
+  border-color: #005bb5;
+}
+/* --- Focus Fuel Music Player Styles --- */
+.music-player-header {
+  padding: 10px 15px 0 15px; /* Padding only on sides and top */
+}
+
+.music-player-content {
+  padding: 15px;
+}
+
+.playlist-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+body.dark-mode .playlist-buttons {
+    border-bottom-color: #333;
+}
+
+.playlist-btn {
+  flex-grow: 1; /* Make buttons share space equally */
+  background-color: transparent;
+  color: #555;
+  border: 1px solid #ccc;
+  font-weight: 600;
+}
+body.dark-mode .playlist-btn {
+    color: #bbb;
+    border-color: #555;
+}
+
+/* Style for the currently selected button */
+.playlist-btn.active {
+  background-color: #007aff;
+  border-color: #007aff;
+  color: white;
+}
+body.dark-mode .playlist-btn.active {
+    background-color: #90caf9;
+    border-color: #90caf9;
+    color: #121212;
+}
+
+/* This container makes the video responsive */
+.video-player-container {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* This creates a 16:9 aspect ratio */
+  background-color: #000;
+  border-radius: 8px;
+  overflow: hidden; /* Ensures the iframe corners are rounded */
+}
+
+.video-player-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
 }
