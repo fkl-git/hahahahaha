@@ -66,6 +66,8 @@ async function loadResources() {
 }
 
 
+// In main.js, replace your entire window.onload function with this one.
+
 window.onload = function () {
   // --- LOGOUT AND LOGIN LOGIC ---
   const logoutButton = document.getElementById('logout-button');
@@ -107,7 +109,7 @@ window.onload = function () {
   const pomodoroCard = document.getElementById('pomodoro-card');
   if (pomodoroCard) {
 
-    // --- Get all DOM Elements ---
+    // ... (All the `getElementById` calls stay the same) ...
     const timerModeTitle = document.getElementById('timer-mode-title');
     const timerStatus = document.getElementById('timer-status');
     const timerDisplay = document.getElementById('timer-display');
@@ -120,31 +122,13 @@ window.onload = function () {
     const settingsModal = document.getElementById('settings-modal');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const settingsForm = document.getElementById('settings-form');
+    const sliders = { work: document.getElementById('work-time-slider'), short: document.getElementById('short-break-slider'), long: document.getElementById('long-break-slider'), interval: document.getElementById('long-break-interval-slider') };
+    const values = { work: document.getElementById('work-time-value'), short: document.getElementById('short-break-value'), long: document.getElementById('long-break-value'), interval: document.getElementById('long-break-interval-value') };
 
-    const sliders = {
-      work: document.getElementById('work-time-slider'),
-      short: document.getElementById('short-break-slider'),
-      long: document.getElementById('long-break-slider'),
-      interval: document.getElementById('long-break-interval-slider')
-    };
-    const values = {
-      work: document.getElementById('work-time-value'),
-      short: document.getElementById('short-break-value'),
-      long: document.getElementById('long-break-value'),
-      interval: document.getElementById('long-break-interval-value')
-    };
+    // ... (The pomodoro object stays the same) ...
+    const pomodoro = { settings: { workTime: 25, shortBreakTime: 5, longBreakTime: 15, longBreakInterval: 4, }, state: { timeLeft: 25 * 60, sessions: 0, currentMode: 'work', timerInterval: null, } };
 
-    // --- Main Pomodoro Object ---
-    const pomodoro = {
-      settings: {
-        workTime: 25, shortBreakTime: 5, longBreakTime: 15, longBreakInterval: 4,
-      },
-      state: {
-        timeLeft: 25 * 60, sessions: 0, currentMode: 'work', timerInterval: null,
-      }
-    };
-
-    // --- Core Functions ---
+    // ... (switchMode and tick functions stay the same) ...
     function switchMode(mode) {
       pomodoro.state.currentMode = mode;
       pomodoroCard.className = 'card';
@@ -164,7 +148,6 @@ window.onload = function () {
       updateDisplay();
       updateCycleTracker();
     }
-
     function tick() {
       pomodoro.state.timeLeft--;
       updateDisplay();
@@ -192,10 +175,14 @@ window.onload = function () {
     function pauseTimer() {
       clearInterval(pomodoro.state.timerInterval);
       pomodoro.state.timerInterval = null;
+      // MODIFIED: Reset title when paused
+      document.title = 'DLSZ Masterfile';
     }
     function resetTimer() {
       pauseTimer();
       switchMode(pomodoro.state.currentMode);
+      // MODIFIED: Reset title when reset
+      document.title = 'DLSZ Masterfile';
     }
 
     function updateDisplay() {
@@ -203,9 +190,13 @@ window.onload = function () {
       const seconds = pomodoro.state.timeLeft % 60;
       const displayString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
       timerDisplay.textContent = displayString;
-      document.title = `${displayString} - ${timerStatus.textContent}`;
+      // MODIFIED: Only update the title if the timer is actually running
+      if (pomodoro.state.timerInterval) {
+        document.title = `${displayString} - ${timerStatus.textContent}`;
+      }
     }
 
+    // ... (All other functions and event listeners stay the same) ...
     function updateCycleTracker() {
       cycleTracker.innerHTML = '';
       const sessionsInCurrentCycle = pomodoro.state.sessions % pomodoro.settings.longBreakInterval;
@@ -218,8 +209,6 @@ window.onload = function () {
         cycleTracker.appendChild(dot);
       }
     }
-
-    // --- NEW: Reusable function to link a slider to its text display ---
     function setupSlider(sliderName) {
       const slider = sliders[sliderName];
       const valueDisplay = values[sliderName];
@@ -227,12 +216,9 @@ window.onload = function () {
         valueDisplay.textContent = slider.value;
       });
     }
-
-    // --- Settings and Local Storage ---
     function saveSettings() {
       localStorage.setItem('pomodoroSettings', JSON.stringify(pomodoro.settings));
     }
-
     function loadSettings() {
       const savedSettings = JSON.parse(localStorage.getItem('pomodoroSettings'));
       if (savedSettings) {
@@ -244,12 +230,9 @@ window.onload = function () {
       sliders.interval.value = pomodoro.settings.longBreakInterval;
       Object.values(sliders).forEach(slider => slider.dispatchEvent(new Event('input')));
     }
-
-    // --- Event Listeners ---
     startBtn.addEventListener('click', startTimer);
     pauseBtn.addEventListener('click', pauseTimer);
     resetBtn.addEventListener('click', resetTimer);
-
     settingsBtn.addEventListener('click', () => settingsModal.classList.add('open'));
     closeModalBtn.addEventListener('click', () => settingsModal.classList.remove('open'));
     settingsModal.addEventListener('click', (e) => {
@@ -257,25 +240,20 @@ window.onload = function () {
         settingsModal.classList.remove('open');
       }
     });
-
     settingsForm.addEventListener('submit', (e) => {
       e.preventDefault();
       pomodoro.settings.workTime = parseInt(sliders.work.value);
       pomodoro.settings.shortBreakTime = parseInt(sliders.short.value);
       pomodoro.settings.longBreakTime = parseInt(sliders.long.value);
       pomodoro.settings.longBreakInterval = parseInt(sliders.interval.value);
-
       saveSettings();
       settingsModal.classList.remove('open');
       resetTimer();
     });
-
-    // --- Initialize Timer on Page Load ---
     setupSlider('work');
     setupSlider('short');
     setupSlider('long');
     setupSlider('interval');
-
     setTimeout(() => {
       loadSettings();
       resetTimer();
