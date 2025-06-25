@@ -570,6 +570,10 @@ input[type=range]::-moz-range-thumb {
   flex-direction: column;
 }
 
+.side-panel.open {
+  transform: translateX(0); /* This brings the panel back on-screen */
+}
+
 .playlist-btn {
   flex-grow: 1; /* Make buttons share space equally */
   background-color: transparent;
@@ -612,4 +616,14 @@ body.dark-mode .playlist-btn.active {
   width: 100%;
   height: 100%;
   border: none;
+}
+#content-container, #login-container {
+  /* Add a transition so the shift is animated */
+  transition: transform 0.3s ease-in-out;
+}
+
+#content-container.content-shifted,
+#login-container.content-shifted {
+   /* Move the content to the left by the width of the panel */
+  transform: translateX(-360px);
 }
