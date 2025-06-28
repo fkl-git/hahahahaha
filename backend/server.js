@@ -179,12 +179,17 @@ app.get('/api/admin/users', async (req, res) => {
 
 // GET ALL LOGS
 app.get('/api/logs', async (req, res) => {
-  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   try {
     const result = await pool.query('SELECT * FROM access_logs ORDER BY time_in DESC');
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to get logs.'});
+    // THIS IS THE NEW, IMPORTANT LINE
+    console.error('Error fetching logs from database:', err.stack); 
+
+    res.status(500).json({ error: 'Failed to get logs.' });
   }
 });
 

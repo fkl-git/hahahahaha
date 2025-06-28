@@ -185,40 +185,38 @@
   <script>
   let currentAdminCode = '';
 
-  async function fetchLogs() {
-    const adminCode = document.getElementById('adminCode').value || currentAdminCode;
-    currentAdminCode = adminCode;
+    async function fetchLogs() {
+      const adminCode = document.getElementById('adminCode').value || currentAdminCode;
+      currentAdminCode = adminCode;
 
-    const res = await fetch(`/api/logs?_=${Date.now()}`, {
-      headers: { 'Authorization': `Bearer ${adminCode}` }
-    });
+      try {
+        const res = await fetch(`/api/logs?_=${Date.now()}`, {
+          headers: { 'Authorization': `Bearer ${adminCode}` }
+        });
 
-    const data = await res.json();
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Failed to fetch logs');
+        }
 
-    if (data.error) {
-      document.getElementById('message').textContent = data.error;
-      return;
+        const logs = await res.json();
+
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('adminContent').style.display = 'block';
+        document.getElementById('logoutButton').style.display = 'inline-block';
+
+        const logsTable = document.getElementById('logsTable');
+        if (logs.length > 0) {
+          // We can just use our awesome table-building function!
+          // This will automatically use the correct column names.
+          logsTable.innerHTML = createHtmlTable(logs);
+        } else {
+          logsTable.innerHTML = '<p>No logs found in the database.</p>';
+        }
+      } catch (error) {
+        document.getElementById('message').textContent = error.message;
+      }
     }
-
-    document.getElementById('loginBox').style.display = 'none';
-    document.getElementById('adminContent').style.display = 'block';
-    document.getElementById('logoutButton').style.display = 'inline-block';
-
-    const tbody = document.querySelector('#logsTable tbody');
-    tbody.innerHTML = '';
-    data.forEach((log, index) => {
-      const row = `<tr>
-        <td>${index + 1}</td>
-        <td>${log.username || ''}</td>
-        <td>${log.timeIn || ''}</td>
-        <td>${log.timeOut || 'Active'}</td>
-        <td>${log.duration || 'Active'}</td>
-        <td>${log.ip || ''}</td>
-        <td>${log.useragent || ''}</td>
-      </tr>`;
-      tbody.innerHTML += row;
-    });
-  }
 
   function logout() {
     document.getElementById('loginBox').style.display = 'block';
