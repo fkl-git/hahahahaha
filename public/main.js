@@ -4,28 +4,34 @@ let currentSessionId = null;
 async function login() {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
+  const messageEl = document.getElementById('message'); // Get the message element
 
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (data.success) {
-    currentUsername = username;
-    currentSessionId = data.session_id;
-    document.getElementById('login-container').style.display = 'none';
-    document.getElementById('content-container').style.display = 'block';
-
-    const logoutBtn = document.getElementById('logout-button');
-    logoutBtn.style.display = 'inline-flex';
-
-    document.getElementById('userNameMark').innerText = username;
-    loadResources();
-  } else {
-    document.getElementById('message').textContent = data.message;
+    if (data.success) {
+      currentUsername = username;
+      currentSessionId = data.session_id;
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('content-container').style.display = 'block';
+      document.getElementById('logout-button').style.display = 'inline-flex';
+      document.getElementById('userNameMark').innerText = username;
+      loadResources();
+      messageEl.textContent = ''; // Clear any old error messages
+    } else {
+      // We will replace this with a better notification later
+      messageEl.textContent = data.message;
+    }
+  } catch (error) {
+    // This will catch network errors or other unexpected issues
+    console.error('Login request failed:', error);
+    messageEl.textContent = 'An unexpected error occurred. Please try again.';
   }
 }
 

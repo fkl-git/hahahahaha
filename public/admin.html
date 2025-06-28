@@ -173,6 +173,7 @@
   <h3>Database Viewer</h3>
   <div style="margin-bottom: 15px;">
     <button onclick="viewTable('users')">View Users Table</button>
+    <button onclick="migrateData()" style="background: #ffc107; color: #000;">Migrate Old Users</button>
     <button onclick="viewTable('access_logs')">View Logs Table</button>
     <span id="viewer-message" style="margin-left: 15px;"></span>
   </div>
@@ -576,7 +577,24 @@
 
       return tableHtml;
     }
-    
+
+    async function migrateData() {
+      if (!confirm("Are you sure you want to migrate data from users.json? This should only be done once.")) {
+        return;
+      }
+      const messageEl = document.getElementById('viewer-message');
+      messageEl.textContent = 'Migrating...';
+
+      const res = await fetch('/api/admin/migrate-users', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${currentAdminCode}` }
+      });
+      const data = await res.json();
+
+      alert(data.message || data.error);
+      messageEl.textContent = '';
+      viewTable('users'); // Automatically refresh the users table view
+    }
   </script>
 </body>
 </html>

@@ -216,6 +216,47 @@ app.get('/api/admin/view-table/:tableName', async (req, res) => {
   }
 });
 
+app.post('/api/admin/migrate-users', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    // 1. Read the old users.json file one last time
+    const oldUsersFile = fs.readFileSync(__dirname + '/users.json', 'utf8');
+    const oldUsers = JSON.parse(oldUsersFile);
+    let migratedCount = 0;
+
+    // 2. Loop through each old user and insert them into the database
+    for (const username in oldUsers) {
+      const user = oldUsers[username];
+      const insertQuery = `
+        INSERT INTO users (username, password, type, used, time_used_seconds, last_login_timestamp)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (username) DO NOTHING; 
+      `;
+      // 'ON CONFLICT DO NOTHING' prevents errors if a user already exists
+
+      const result = await pool.query(insertQuery, [
+        username,
+        user.password,
+        user.type,
+        user.used || false,
+        user.timeUsed || 0, // 'timeUsed' from JSON becomes 'time_used_seconds'
+        user.lastLogin || null // 'lastLogin' from JSON becomes 'last_login_timestamp'
+      ]);
+
+      if (result.rowCount > 0) {
+        migratedCount++; // Count how many new users were added
+      }
+    }
+    res.json({ success: true, message: `Migration complete. Added ${migratedCount} new users to the database.` });
+
+  } catch (err) {
+    console.error('Migration error:', err.stack);
+    res.status(500).json({ error: 'Failed to migrate data.' });
+  }
+});
 
 // ===================================================================
 // === RESOURCE Endpoints (using the resources.json file) ===
