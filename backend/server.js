@@ -10,14 +10,32 @@ app.use((req, res, next) => {
 });
 
 const LOG_FILE = __dirname + '/logs.json';
+const USERS_FILE = __dirname + '/users.json'; // Path to our new users file
 const ADMIN_SECRET = 'HKTUWC112';
 
-const users = {
-  "admin": { otp: "admin1", used: false },
-  "studentA": { otp: "stuA123", used: false },
-  "ilovemybf123": { otp: "wya12c", used: false },
-  "fkl.kael": { otp: "joshmichael", used: false }
-};
+// --- Data Loading and Saving ---
+let users = {};
+if (fs.existsSync(USERS_FILE)) {
+  users = JSON.parse(fs.readFileSync(USERS_FILE));
+} else {
+  // Create the file if it doesn't exist
+  fs.writeFileSync(USERS_FILE, JSON.stringify({}, null, 2));
+}
+
+let loginLogs = [];
+if (fs.existsSync(LOG_FILE)) {
+  loginLogs = JSON.parse(fs.readFileSync(LOG_FILE));
+}
+
+const activeSessions = {};
+
+function saveUsers() {
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+function saveLogs() {
+  fs.writeFileSync(LOG_FILE, JSON.stringify(loginLogs, null, 2));
+}
 
 // Load existing logs from file if present
 let loginLogs = [];
@@ -32,45 +50,73 @@ function saveLogs() {
   fs.writeFileSync(LOG_FILE, JSON.stringify(loginLogs, null, 2));
 }
 
-// LOGIN
+// UPGRADED LOGIN ENDPOINT
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
+
   if (!username || !password) {
     return res.json({ success: false, message: "Please enter username and password" });
   }
 
-  if (!users[username]) {
+  const user = users[username];
+
+  if (!user) {
     return res.json({ success: false, message: "Username not found" });
   }
 
-  if (users[username].used) {
-    return res.json({ success: false, message: "OTP already used" });
+  // --- LOGIC FOR TIMED PASSWORDS ---
+  if (user.type === 'timed') {
+    const twentyFourHours = 24 * 60 * 60; // 24 hours in seconds
+    if (user.timeUsed >= twentyFourHours) {
+      return res.json({ success: false, message: "Password has expired (time limit exceeded)." });
+    }
+
+    const threeDays = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+    if (user.lastLogin && (new Date() - new Date(user.lastLogin)) > threeDays) {
+      return res.json({ success: false, message: "Password has expired (3 days of inactivity)." });
+    }
+
+    if (user.password !== password) {
+      return res.json({ success: false, message: "Invalid password" });
+    }
+
+    // All checks passed, update lastLogin time
+    user.lastLogin = new Date().toISOString();
+
+  // --- LOGIC FOR ONE-TIME PASSWORDS (OTP) ---
+  } else if (user.type === 'otp') {
+    if (user.used) {
+      return res.json({ success: false, message: "OTP already used" });
+    }
+    if (user.password !== password) {
+      return res.json({ success: false, message: "Invalid password" });
+    }
+    user.used = true; // Mark OTP as used
+
+  } else {
+    return res.json({ success: false, message: "Invalid user type configured." });
   }
 
-  if (users[username].otp !== password) {
-    return res.json({ success: false, message: "Invalid password" });
-  }
-
-  users[username].used = true;
-
-  // Create new log entry
+  // --- Create Log Entry (For Both User Types) ---
   const entry = {
     username,
     timeIn: new Date().toISOString(),
     timeOut: null,
-    duration: null, 
+    duration: null,
     ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
     useragent: req.headers['user-agent']
   };
 
   loginLogs.push(entry);
   activeSessions[username] = entry;
+
+  saveUsers(); // Save the updated user data (used flag or lastLogin)
   saveLogs();
 
   res.json({ success: true, message: "Login successful" });
 });
 
-// LOGOUT endpoint
+// UPGRADED LOGOUT ENDPOINT
 app.post('/api/logout', (req, res) => {
   const { username } = req.body;
   if (!username || !activeSessions[username]) {
@@ -84,44 +130,50 @@ app.post('/api/logout', (req, res) => {
   const durationSec = Math.floor(durationMs / 1000);
   log.duration = `${durationSec} seconds`;
 
+  const user = users[username];
+  // If the user is a 'timed' user, add the session duration to their total time used
+  if (user && user.type === 'timed') {
+    user.timeUsed += durationSec;
+  }
+
   delete activeSessions[username];
+
+  saveUsers(); // Save the updated timeUsed
   saveLogs();
 
   res.json({ success: true, message: "Logout logged" });
 });
 
-// VIEW LOGS (ADMIN)
-app.get('/api/logs', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  res.json(loginLogs);
-});
-
-// ADD / UPDATE OTP (ADMIN)
-app.post('/api/admin/add-otp', (req, res) => {
+// RENAMED AND UPGRADED ENDPOINT FOR ADDING/UPDATING USERS
+app.post('/api/admin/add-user', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { username, otp } = req.body;
-  if (!username || !otp) {
-    return res.status(400).json({ error: 'Missing username or OTP' });
+  const { username, password, type } = req.body;
+  if (!username || !password || !type) {
+    return res.status(400).json({ error: 'Missing username, password, or type' });
   }
 
-  users[username] = { otp, used: false };
-  res.json({ success: true, message: `OTP added for ${username}` });
+  if (type === 'otp') {
+    users[username] = { type: 'otp', password, used: false };
+  } else if (type === 'timed') {
+    users[username] = { type: 'timed', password, timeUsed: 0, lastLogin: null };
+  } else {
+    return res.status(400).json({ error: 'Invalid user type specified' });
+  }
+
+  saveUsers(); // Save the new user to our file
+  res.json({ success: true, message: `User '${username}' added/updated successfully!` });
 });
 
-// GET ALL USERS (ADMIN)
+// GET ALL USERS (No change in logic, just for consistency with the code block)
 app.get('/api/admin/users', (req, res) => {
   const auth = req.headers.authorization;
   if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
   res.json(Object.keys(users));
 });
 

@@ -133,11 +133,15 @@
     <button onclick="toggleManageOtp()">Manage</button>
 
     <div id="otpManager" style="display: none; margin-top: 20px;">
-      <h3>Assign OTP to Existing User</h3>
-      <select id="approvedUsersDropdown"></select>
-      <input type="text" id="approvedUserOtp" placeholder="Enter new OTP" />
-      <button onclick="assignOtpToApprovedUser()">Assign OTP</button>
-      <p id="approvedMsg"></p>
+      <h3>Add New User</h3>
+      <input type="text" id="newUsername" placeholder="Enter new username" />
+      <input type="text" id="newUserPassword" placeholder="Enter Password" />
+      <select id="userTypeDropdown">
+          <option value="otp">One-Time Password</option>
+          <option value="timed">24-Hour Timed Password</option>
+      </select>
+      <button onclick="addNewUser()">Add New User</button>
+      <p id="newUserMsg"></p>
 
       <h3>Add New User</h3>
       <input type="text" id="newUsername" placeholder="Enter new username" />
@@ -262,26 +266,30 @@
     document.getElementById('approvedMsg').textContent = data.message || data.error;
   }
 
-  async function addNewUser() {
-    const username = document.getElementById('newUsername').value;
-    const otp = document.getElementById('newUserOtp').value;
+    // Replace the old addNewUser function with this one
+    async function addNewUser() {
+      const username = document.getElementById('newUsername').value;
+      const password = document.getElementById('newUserPassword').value; // Changed ID from newUserOtp
+      const type = document.getElementById('userTypeDropdown').value; // Get the selected type
 
-    const res = await fetch('/api/admin/add-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentAdminCode}`
-      },
-      body: JSON.stringify({ username, otp })
-    });
+      // The endpoint will be '/api/admin/add-user' now
+      const res = await fetch('/api/admin/add-user', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentAdminCode}`
+        },
+        // Send all the required data
+        body: JSON.stringify({ username, password, type }) 
+      });
 
-    const data = await res.json();
-    document.getElementById('newUserMsg').textContent = data.message || data.error;
+      const data = await res.json();
+      document.getElementById('newUserMsg').textContent = data.message || data.error;
 
-    if (data.success) {
-      loadApprovedUsers();
+      if (data.success) {
+        loadApprovedUsers();
+      }
     }
-  }
 
   // Auto-refresh logs cleanly every 5 seconds
   setInterval(() => {

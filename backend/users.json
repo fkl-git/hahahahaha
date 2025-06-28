@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "type": "otp",
+    "password": "admin1",
+    "used": false
+  },
+  "studentA": {
+    "type": "otp",
+    "password": "stuA123",
+    "used": false
+  },
+  "ilovemybf123": {
+    "type": "otp",
+    "password": "wya12c",
+    "used": false
+  },
+  "fkl.kael": {
+    "type": "otp",
+    "password": "joshmichael",
+    "used": false
+  }
+}
