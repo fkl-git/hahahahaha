@@ -1,351 +1,283 @@
+// =================== FINAL and COMPLETE server.js ===================
 const express = require('express');
-const fs = require('fs');
+const { Pool } = require('pg'); // Import the pg library
+const fs = require('fs'); // Keep fs for resource management
 const app = express();
 
+// --- Middleware Setup ---
 app.use(express.json());
 app.use(express.static(__dirname + '/../public'));
 app.use((req, res, next) => {
-res.setHeader("X-Frame-Options", "DENY");
-next();
+  res.setHeader("X-Frame-Options", "DENY");
+  next();
 });
 
-const LOG_FILE = __dirname + '/logs.json';
-const USERS_FILE = __dirname + '/users.json';
+// --- Database Connection ---
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
 const ADMIN_SECRET = 'HKTUWC112';
 
-// --- Data Loading and Saving ---
-let users = {};
-if (fs.existsSync(USERS_FILE)) {
-users = JSON.parse(fs.readFileSync(USERS_FILE));
-} else {
-fs.writeFileSync(USERS_FILE, JSON.stringify({}, null, 2));
+// --- Function to Initialize Database Tables ---
+async function initializeDatabase() {
+  const userTableQuery = `
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      type VARCHAR(10) NOT NULL,
+      used BOOLEAN DEFAULT FALSE,
+      time_used_seconds INTEGER DEFAULT 0,
+      last_login_timestamp TIMESTAMPTZ
+    );
+  `;
+  const logTableQuery = `
+    CREATE TABLE IF NOT EXISTS access_logs (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) NOT NULL,
+      time_in TIMESTAMPTZ NOT NULL,
+      time_out TIMESTAMPTZ,
+      duration_seconds INTEGER,
+      ip_address VARCHAR(50),
+      user_agent TEXT
+    );
+  `;
+  try {
+    await pool.query(userTableQuery);
+    await pool.query(logTableQuery);
+    console.log('Database tables are ready.');
+  } catch (err) {
+    console.error('Error initializing database tables:', err.stack);
+  }
 }
 
-let loginLogs = [];
-if (fs.existsSync(LOG_FILE)) {
-loginLogs = JSON.parse(fs.readFileSync(LOG_FILE));
-}
+// ===================================================================
+// === USER and LOG Endpoints (using the DATABASE) ===
+// ===================================================================
 
-const activeSessions = {};
-
-function saveUsers() {
-fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-}
-
-function saveLogs() {
-fs.writeFileSync(LOG_FILE, JSON.stringify(loginLogs, null, 2));
-}
-
-// UPGRADED LOGIN ENDPOINT
-app.post('/api/login', (req, res) => {
+// LOGIN
+app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
+  if (!username || !password) return res.json({ success: false, message: "Missing credentials" });
 
-  if (!username || !password) {
-    return res.json({ success: false, message: "Please enter username and password" });
-  }
+  try {
+    const userResult = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    if (userResult.rows.length === 0) return res.json({ success: false, message: "Username not found" });
+    const user = userResult.rows[0];
 
-  const user = users[username];
+    if (user.password !== password) return res.json({ success: false, message: "Invalid password" });
 
-  if (!user) {
-    return res.json({ success: false, message: "Username not found" });
-  }
-
-  // Check for an active session first to prevent multiple logins
-  if (activeSessions[username]) {
-    return res.json({ success: false, message: "User is already logged in." });
-  }
-
-  // --- Password and Rule Validation ---
-  if (user.password !== password) {
-    return res.json({ success: false, message: "Invalid password" });
-  }
-
-  if (user.type === 'timed') {
-    const twentyFourHours = 24 * 60 * 60; // 24 hours in seconds
-    if (user.timeUsed >= twentyFourHours) {
-      return res.json({ success: false, message: "Password has expired (time limit exceeded)." });
+    if (user.type === 'timed') {
+      const twentyFourHours = 24 * 60 * 60;
+      if (user.time_used_seconds >= twentyFourHours) return res.json({ success: false, message: "Password expired (time limit)." });
+      const threeDays = 3 * 24 * 60 * 60 * 1000;
+      if (user.last_login_timestamp && (new Date() - new Date(user.last_login_timestamp)) > threeDays) return res.json({ success: false, message: "Password expired (inactivity)." });
+    } else if (user.type === 'otp') {
+      if (user.used) return res.json({ success: false, message: "OTP already used" });
     }
 
-    const threeDays = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
-    if (user.lastLogin && (new Date() - new Date(user.lastLogin)) > threeDays) {
-      return res.json({ success: false, message: "Password has expired (3 days of inactivity)." });
+    if (user.type === 'timed') {
+      await pool.query('UPDATE users SET last_login_timestamp = NOW() WHERE username = $1', [username]);
+    } else {
+      await pool.query('UPDATE users SET used = TRUE WHERE username = $1', [username]);
     }
-  } else if (user.type === 'otp') {
-    if (user.used) {
-      return res.json({ success: false, message: "OTP already used" });
+
+    const logQuery = `INSERT INTO access_logs (username, time_in, ip_address, user_agent) VALUES ($1, NOW(), $2, $3) RETURNING id;`;
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    const logResult = await pool.query(logQuery, [username, ip, userAgent]);
+
+    res.json({ success: true, message: "Login successful", session_id: logResult.rows[0].id });
+  } catch (err) {
+    console.error('Login error:', err.stack);
+    res.status(500).json({ success: false, message: 'Server error during login.' });
+  }
+});
+
+// LOGOUT
+app.post('/api/logout', async (req, res) => {
+  const { username, session_id } = req.body;
+  if (!username || !session_id) return res.json({ success: false, message: "Missing user or session info" });
+
+  try {
+    const logResult = await pool.query('SELECT time_in FROM access_logs WHERE id = $1', [session_id]);
+    if(logResult.rows.length === 0) return res.json({ success: false, message: "Session not found."});
+
+    const timeIn = new Date(logResult.rows[0].time_in);
+    const timeOut = new Date();
+    const durationSec = Math.floor((timeOut - timeIn) / 1000);
+
+    await pool.query('UPDATE access_logs SET time_out = $1, duration_seconds = $2 WHERE id = $3', [timeOut, durationSec, session_id]);
+
+    const userResult = await pool.query('SELECT type FROM users WHERE username = $1', [username]);
+    if (userResult.rows.length > 0 && userResult.rows[0].type === 'timed') {
+      await pool.query('UPDATE users SET time_used_seconds = time_used_seconds + $1 WHERE username = $2', [durationSec, username]);
     }
-  } else {
-    return res.json({ success: false, message: "Invalid user type configured." });
+
+    res.json({ success: true, message: "Logout logged" });
+  } catch (err) {
+    console.error('Logout error:', err.stack);
+    res.status(500).json({ success: false, message: 'Server error during logout.' });
   }
-
-  // --- If all checks above passed, the login is successful ---
-
-  // Update user state
-  if (user.type === 'timed') {
-    user.lastLogin = new Date().toISOString();
-  } else { // type is 'otp'
-    user.used = true;
-  }
-
-  // Create Log Entry
-  const entry = {
-    username,
-    timeIn: new Date().toISOString(),
-    timeOut: null,
-    duration: null,
-    ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-    useragent: req.headers['user-agent']
-  };
-
-  loginLogs.push(entry);
-  activeSessions[username] = entry;
-
-  saveUsers(); // Save the updated user data (used flag or lastLogin)
-  saveLogs();
-
-  // Send final success response
-  return res.json({ success: true, message: "Login successful" });
 });
 
-// UPGRADED LOGOUT ENDPOINT
-app.post('/api/logout', (req, res) => {
-  const { username } = req.body;
-  if (!username || !activeSessions[username]) {
-    return res.json({ success: false, message: "No active session found for user" });
-  }
-
-  const log = activeSessions[username];
-  log.timeOut = new Date().toISOString();
-
-  const durationMs = new Date(log.timeOut) - new Date(log.timeIn);
-  const durationSec = Math.floor(durationMs / 1000);
-  log.duration = `${durationSec} seconds`;
-
-  const user = users[username];
-  // If the user is a 'timed' user, add the session duration to their total time used
-  if (user && user.type === 'timed') {
-    user.timeUsed += durationSec;
-  }
-
-  delete activeSessions[username];
-
-  saveUsers(); // Save the updated timeUsed
-  saveLogs();
-
-  res.json({ success: true, message: "Logout logged" });
-});
-
-// VIEW LOGS (ADMIN)
-app.get('/api/logs', (req, res) => {
-  // 1. Get the secret code from the request header
-  const auth = req.headers.authorization;
-
-  // 2. Check if the code is correct
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    // If not, send an 'Unauthorized' error and stop
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  // 3. If the code is correct, send the logs data as a JSON response
-  res.json(loginLogs);
-});
-
-// RENAMED AND UPGRADED ENDPOINT FOR ADDING/UPDATING USERS
-app.post('/api/admin/add-user', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
+// ADD/UPDATE USER
+app.post('/api/admin/add-user', async (req, res) => {
   const { username, password, type } = req.body;
-  if (!username || !password || !type) {
-    return res.status(400).json({ error: 'Missing username, password, or type' });
-  }
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
-  if (type === 'otp') {
-    users[username] = { type: 'otp', password, used: false };
-  } else if (type === 'timed') {
-    users[username] = { type: 'timed', password, timeUsed: 0, lastLogin: null };
-  } else {
-    return res.status(400).json({ error: 'Invalid user type specified' });
+  try {
+    const upsertQuery = `
+      INSERT INTO users (username, password, type, used, time_used_seconds, last_login_timestamp)
+      VALUES ($1, $2, $3, FALSE, 0, NULL)
+      ON CONFLICT (username) DO UPDATE
+      SET password = $2, type = $3, used = FALSE, time_used_seconds = 0, last_login_timestamp = NULL;
+    `;
+    await pool.query(upsertQuery, [username, password, type]);
+    res.json({ success: true, message: `User '${username}' has been created/updated.` });
+  } catch (err) {
+    console.error('Admin add user error:', err.stack);
+    res.status(500).json({ error: 'Failed to add user.' });
   }
-
-  saveUsers(); // Save the new user to our file
-  res.json({ success: true, message: `User '${username}' added/updated successfully!` });
 });
 
-// GET ALL USERS (No change in logic, just for consistency with the code block)
-app.get('/api/admin/users', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
+// GET ALL USERS
+app.get('/api/admin/users', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const result = await pool.query('SELECT username FROM users ORDER BY username');
+    res.json(result.rows.map(row => row.username));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get users.'});
   }
-  res.json(Object.keys(users));
 });
+
+// GET ALL LOGS
+app.get('/api/logs', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const result = await pool.query('SELECT * FROM access_logs ORDER BY time_in DESC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get logs.'});
+  }
+});
+
+// ===================================================================
+// === RESOURCE Endpoints (using the resources.json file) ===
+// ===================================================================
 
 // GET ALL RESOURCES
 app.get('/api/resources', (req, res) => {
-  // We use 'fs' (File System module) which you already have.
-    fs.readFile(__dirname + '/resources.json', 'utf8', (err, data) => {
-    // Basic error handling
+  fs.readFile(__dirname + '/resources.json', 'utf8', (err, data) => {
     if (err) {
       console.error("Error reading resources.json:", err);
-      // Send an error message back to the client
       return res.status(500).json({ error: 'Could not load resources.' });
     }
-    // If successful, parse the file content and send it as a JSON response
     res.json(JSON.parse(data));
   });
 });
 
-// PASTE THIS CODE INTO server.js
-
 // ADD A NEW RESOURCE (ADMIN)
 app.post('/api/admin/resource', (req, res) => {
-  // 1. Authenticate the admin
   const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
-  // 2. Get the new resource data from the request
   const { category, title, url, subtext } = req.body;
-  if (!category || !title || !url) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
+  if (!category || !title || !url) return res.status(400).json({ error: 'Missing required fields' });
 
   const resourceFile = __dirname + '/resources.json';
-
-  // 3. Read the existing resources.json file
   fs.readFile(resourceFile, 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Failed to read resources file.' });
-    }
+    if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
 
     const resources = JSON.parse(data);
     const newResource = { id: Date.now(), title, url, subtext };
 
-    // 4. Add the new resource to the correct category
     if (resources[category]) {
-      // If the category already exists, add to it
       resources[category].push(newResource);
     } else {
-      // If it's a new category, create it
       resources[category] = [newResource];
     }
 
-    // 5. Write the updated data back to the file
     fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
-      if (writeErr) {
-        console.error(writeErr);
-        return res.status(500).json({ error: 'Failed to save new resource.' });
-      }
-
-      // 6. Send a success message
+      if (writeErr) return res.status(500).json({ error: 'Failed to save new resource.' });
       res.json({ success: true, message: `Resource '${title}' added successfully!` });
     });
   });
 });
 
-// In server.js
-
 // DELETE A SINGLE RESOURCE (ADMIN)
 app.delete('/api/admin/resource', (req, res) => {
-  // 1. Authenticate
   const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
-  // 2. Get data from the request
   const { category, id } = req.body;
-  if (!category || !id) {
-    return res.status(400).json({ error: 'Missing category or resource ID' });
-  }
+  if (!category || !id) return res.status(400).json({ error: 'Missing category or resource ID' });
 
   const resourceFile = __dirname + '/resources.json';
-
-  // 3. Read the file
   fs.readFile(resourceFile, 'utf8', (err, data) => {
     if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
 
     const resources = JSON.parse(data);
+    if (!resources[category]) return res.status(404).json({ error: 'Category not found.' });
 
-    // 4. Find and remove the resource
-    if (!resources[category]) {
-      return res.status(404).json({ error: 'Category not found.' });
-    }
-
-    // Find the index of the resource to delete
     const indexToDelete = resources[category].findIndex(resource => resource.id === id);
-
     if (indexToDelete > -1) {
-      // Remove the item from the array
       resources[category].splice(indexToDelete, 1);
     } else {
       return res.status(404).json({ error: 'Resource ID not found in this category.' });
     }
 
-    // 5. Write the updated data back to the file
     fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
       if (writeErr) return res.status(500).json({ error: 'Failed to save updated resources.' });
-
       res.json({ success: true, message: 'Resource deleted successfully!' });
     });
   });
 });
 
+// DELETE A CATEGORY
 app.delete('/api/admin/category', (req, res) => {
   const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
   const { category } = req.body;
   if (!category) return res.status(400).json({ error: 'Missing category' });
 
   const resourceFile = __dirname + '/resources.json';
-
   fs.readFile(resourceFile, 'utf8', (err, data) => {
     if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
 
     const resources = JSON.parse(data);
-
     if (resources[category]) {
-      delete resources[category]; // This deletes the whole category
+      delete resources[category];
     } else {
       return res.status(404).json({ error: 'Category not found.' });
     }
 
     fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
       if (writeErr) return res.status(500).json({ error: 'Failed to save updated resources.' });
-
       res.json({ success: true, message: `Category '${category}' deleted successfully!` });
     });
   });
 });
 
+// BULK DELETE RESOURCES
 app.delete('/api/admin/bulk-delete', (req, res) => {
   const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
-  // We only expect 'resources' in the body now
   const { resources } = req.body;
-  if (!resources) {
-    return res.status(400).json({ error: 'Invalid request body.' });
-  }
+  if (!resources) return res.status(400).json({ error: 'Invalid request body.' });
 
   const resourceFile = __dirname + '/resources.json';
-
   fs.readFile(resourceFile, 'utf8', (err, data) => {
     if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
 
     let resourcesData = JSON.parse(data);
-
-    // We no longer need to loop through categories to delete, only resources
     resources.forEach(itemToDelete => {
       if (resourcesData[itemToDelete.category]) {
         resourcesData[itemToDelete.category] = resourcesData[itemToDelete.category].filter(
@@ -362,5 +294,9 @@ app.delete('/api/admin/bulk-delete', (req, res) => {
 });
 
 
+// --- Server Start ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
+  initializeDatabase(); // Call the setup function when the server starts
+});

@@ -1,4 +1,5 @@
 let currentUsername = null;
+let currentSessionId = null;
 
 async function login() {
   const username = document.getElementById('username').value;
@@ -14,6 +15,7 @@ async function login() {
 
   if (data.success) {
     currentUsername = username;
+    currentSessionId = data.session_id;
     document.getElementById('login-container').style.display = 'none';
     document.getElementById('content-container').style.display = 'block';
 
@@ -84,8 +86,7 @@ window.onload = function () {
     const res = await fetch('/api/logout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: currentUsername })
-    });
+    body: JSON.stringify({ username: currentUsername, session_id: currentSessionId });
     const data = await res.json();
     if (data.success) {
       alert("You have successfully logged out");
@@ -259,7 +260,7 @@ window.onload = function () {
 
     function loadVideo(videoId) {
       if (videoId) {
-        player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&modestbranding=1&loop=1&playlist=${videoId}`;
+        player.src = `http://www.youtube.com/embed/?autoplay=1&modestbranding=1&loop=1&playlist=${videoId}`;
       } else {
         player.src = 'about:blank';
       }
