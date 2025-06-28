@@ -130,6 +130,21 @@ app.post('/api/logout', (req, res) => {
   res.json({ success: true, message: "Logout logged" });
 });
 
+// VIEW LOGS (ADMIN)
+app.get('/api/logs', (req, res) => {
+  // 1. Get the secret code from the request header
+  const auth = req.headers.authorization;
+
+  // 2. Check if the code is correct
+  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) {
+    // If not, send an 'Unauthorized' error and stop
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // 3. If the code is correct, send the logs data as a JSON response
+  res.json(loginLogs);
+});
+
 // RENAMED AND UPGRADED ENDPOINT FOR ADDING/UPDATING USERS
 app.post('/api/admin/add-user', (req, res) => {
   const auth = req.headers.authorization;
