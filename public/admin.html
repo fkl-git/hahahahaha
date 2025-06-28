@@ -145,6 +145,13 @@
     <button onclick="updatePassword()" style="background-color: #ffc107; color: #000;">Update Password</button>
     <p id="updateMsg"></p>
 
+    <hr style="margin-top: 20px; margin-bottom: 20px;">
+    <h3>Remove User</h3>
+    <select id="deleteUserDropdown"></select>
+    <button onclick="removeUser()" style="background-color: #c82333;">Permanently Remove User</button>
+    <p id="deleteMsg"></p>
+
+
     <h3>Add New User</h3>
     <input type="text" id="newUsername" placeholder="Enter new username" />
     <input type="text" id="newUserPassword" placeholder="Enter Password" />
@@ -181,6 +188,7 @@
     <button onclick="viewTable('users')">View Users Table</button>
     <button onclick="migrateData()" style="background: #ffc107; color: #000;">Migrate Old Users</button>
     <button onclick="viewTable('access_logs')">View Logs Table</button>
+    <button onclick="clearAllLogs()" style="background-color: #c82333; margin-left: 20px;">Clear All Logs</button>
     <span id="viewer-message" style="margin-left: 15px;"></span>
   </div>
   <div id="data-viewer-output" style="overflow-x: auto;"></div>
@@ -251,19 +259,20 @@
 
       const users = await res.json();
       const assignDropdown = document.getElementById('approvedUsersDropdown');
-      const updateDropdown = document.getElementById('updateUserDropdown'); // Get the new dropdown
+      const updateDropdown = document.getElementById('updateUserDropdown');
+      const deleteDropdown = document.getElementById('deleteUserDropdown'); // Get the new dropdown
 
-      // Clear both dropdowns
       assignDropdown.innerHTML = '';
       updateDropdown.innerHTML = '';
+      deleteDropdown.innerHTML = '';
 
       users.forEach(u => {
         const option = document.createElement('option');
         option.value = u;
         option.textContent = u;
-        // Add the option to both dropdowns
         assignDropdown.appendChild(option.cloneNode(true)); 
-        updateDropdown.appendChild(option);
+        updateDropdown.appendChild(option.cloneNode(true));
+        deleteDropdown.appendChild(option);
       });
     }
 
@@ -313,6 +322,37 @@
 
       if (data.success) {
         document.getElementById('updatedPassword').value = ''; // Clear input on success
+      }
+    }
+
+    async function removeUser() {
+      const username = document.getElementById('deleteUserDropdown').value;
+      const msgEl = document.getElementById('deleteMsg');
+
+      if (!username) {
+        msgEl.textContent = 'Please select a user to remove.';
+        return;
+      }
+
+      // Strong confirmation dialog to prevent accidents
+      if (!confirm(`DANGER: Are you absolutely sure you want to permanently delete the user '${username}' and all their logs? This cannot be undone.`)) {
+        return;
+      }
+
+      const res = await fetch('/api/admin/remove-user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentAdminCode}`
+        },
+        body: JSON.stringify({ username })
+      });
+
+      const data = await res.json();
+      msgEl.textContent = data.message || data.error;
+
+      if (data.success) {
+        loadApprovedUsers(); // Refresh the user lists
       }
     }
 
@@ -628,6 +668,27 @@
       alert(data.message || data.error);
       messageEl.textContent = '';
       viewTable('users'); // Automatically refresh the users table view
+    }
+
+    async function clearAllLogs() {
+      // A very strong confirmation dialog
+      if (!confirm("DANGER: Are you absolutely sure you want to permanently delete ALL access logs? This is irreversible.")) {
+        return;
+      }
+
+      const messageEl = document.getElementById('viewer-message');
+      messageEl.textContent = 'Clearing logs...';
+
+      const res = await fetch('/api/admin/clear-logs', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${currentAdminCode}` }
+      });
+
+      const data = await res.json();
+      alert(data.message || data.error);
+
+      messageEl.textContent = '';
+      viewTable('access_logs'); // Refresh the logs view, which should now be empty
     }
   </script>
 </body>

@@ -283,6 +283,46 @@ app.post('/api/admin/update-password', async (req, res) => {
   }
 });
 
+app.delete('/api/admin/remove-user', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { username } = req.body;
+  if (!username) return res.status(400).json({ error: 'Missing username.' });
+
+  // Safety check: prevent deleting the main admin account
+  if (username === 'admin') {
+    return res.status(403).json({ error: 'Cannot delete the primary admin account.' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN'); // Start a transaction
+    await client.query('DELETE FROM access_logs WHERE username = $1', [username]); // Delete logs first
+    await client.query('DELETE FROM users WHERE username = $1', [username]); // Then delete the user
+    await client.query('COMMIT'); // Commit both changes
+    res.json({ success: true, message: `User '${username}' and all their logs have been deleted.` });
+  } catch (err) {
+    await client.query('ROLLBACK'); // If anything fails, undo all changes
+    console.error('Remove user error:', err.stack);
+    res.status(500).json({ error: 'Failed to remove user.' });
+  } finally {
+    client.release(); // Release the client back to the pool
+  }
+});
+
+app.delete('/api/admin/clear-logs', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    // TRUNCATE is faster than DELETE for clearing a whole table and resets counters
+    await pool.query('TRUNCATE TABLE access_logs;');
+    res.json({ success: true, message: 'All access logs have been cleared.' });
+  } catch (err) {
+    console.error('Clear logs error:', err.stack);
+    res.status(500).json({ error: 'Failed to clear logs.' });
+  }
+});
+
 // ===================================================================
 // === RESOURCE Endpoints (using the resources.json file) ===
 // ===================================================================
