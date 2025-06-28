@@ -37,12 +37,6 @@ function saveLogs() {
   fs.writeFileSync(LOG_FILE, JSON.stringify(loginLogs, null, 2));
 }
 
-// Load existing logs from file if present
-let loginLogs = [];
-if (fs.existsSync(LOG_FILE)) {
-  loginLogs = JSON.parse(fs.readFileSync(LOG_FILE));
-}
-
 // Track active sessions (username -> entry log object)
 const activeSessions = {};
 
