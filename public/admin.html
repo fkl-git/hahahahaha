@@ -607,8 +607,11 @@
      * Fetches data from a specified table and displays it.
      * @param {string} tableName - The name of the table to view ('users' or 'access_logs').
      */
-    async function viewTable(tableName) {
+      async function viewTable(tableName) {
+      console.log("--- Starting viewTable function for:", tableName);
       const outputDiv = document.getElementById('data-viewer-output');
+      console.log("Result of finding #data-viewer-output:", outputDiv);
+
       const messageEl = document.getElementById('viewer-message');
       outputDiv.innerHTML = 'Loading...';
       messageEl.textContent = '';
