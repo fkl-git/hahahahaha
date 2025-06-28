@@ -23,35 +23,56 @@ const pool = new Pool({
 const ADMIN_SECRET = 'HKTUWC112';
 
 // --- Function to Initialize Database Tables ---
-async function initializeDatabase() {
-  const userTableQuery = `
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(255) UNIQUE NOT NULL,
-      password VARCHAR(255) NOT NULL,
-      type VARCHAR(10) NOT NULL,
-      used BOOLEAN DEFAULT FALSE,
-      time_used_seconds INTEGER DEFAULT 0,
-      last_login_timestamp TIMESTAMPTZ
-    );
-  `;
-  const logTableQuery = `
-    CREATE TABLE IF NOT EXISTS access_logs (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(255) NOT NULL,
-      time_in TIMESTAMPTZ NOT NULL,
-      time_out TIMESTAMPTZ,
-      duration_seconds INTEGER,
-      ip_address VARCHAR(50),
-      user_agent TEXT
-    );
-  `;
-  try {
-    await pool.query(userTableQuery);
-    await pool.query(logTableQuery);
-    console.log('Database tables are ready.');
-  } catch (err) {
-    console.error('Error initializing database tables:', err.stack);
+async function initializeDatabase(retries = 5, delay = 5000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      // 1. Try to connect and run a simple query
+      await pool.query('SELECT NOW()'); 
+      console.log('Database connection successful.');
+
+      // 2. If connection is successful, proceed to create tables
+      const userTableQuery = `
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(255) UNIQUE NOT NULL,
+          password VARCHAR(255) NOT NULL,
+          type VARCHAR(10) NOT NULL,
+          used BOOLEAN DEFAULT FALSE,
+          time_used_seconds INTEGER DEFAULT 0,
+          last_login_timestamp TIMESTAMPTZ
+        );
+      `;
+      const logTableQuery = `
+        CREATE TABLE IF NOT EXISTS access_logs (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(255) NOT NULL,
+          time_in TIMESTAMPTZ NOT NULL,
+          time_out TIMESTAMPTZ,
+          duration_seconds INTEGER,
+          ip_address VARCHAR(50),
+          user_agent TEXT
+        );
+      `;
+
+      await pool.query(userTableQuery);
+      await pool.query(logTableQuery);
+      console.log('Database tables are ready.');
+
+      return; // Exit the function successfully if all queries passed
+
+    } catch (err) {
+      console.error(`Database connection attempt ${i + 1} of ${retries} failed. Retrying in ${delay / 1000}s...`);
+
+      // If this was the last attempt, log a final failure message
+      if (i === retries - 1) {
+        console.error('All database connection attempts failed.', err.stack);
+        // Optional: In a real production app, you might want to stop the server
+        // process.exit(1); 
+      }
+
+      // Wait for the specified delay before the next retry
+      await new Promise(res => setTimeout(res, delay));
+    }
   }
 }
 
