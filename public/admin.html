@@ -132,41 +132,51 @@
 
     <button onclick="toggleManageOtp()">Manage</button>
 
-    <div id="otpManager" style="display: none; margin-top: 20px;">
-      <h3>Add New User</h3>
-      <input type="text" id="newUsername" placeholder="Enter new username" />
-      <input type="text" id="newUserPassword" placeholder="Enter Password" />
-      <select id="userTypeDropdown">
-          <option value="otp">One-Time Password</option>
-          <option value="timed">24-Hour Timed Password</option>
-      </select>
-      <button onclick="addNewUser()">Add New User</button>
-      <p id="newUserMsg"></p>
+  <div id="otpManager" style="display: none; margin-top: 20px;">
+    <h3>Assign OTP to Existing User</h3>
+    <select id="approvedUsersDropdown"></select>
+    <input type="text" id="approvedUserOtp" placeholder="Enter new OTP" />
+    <button onclick="assignOtpToApprovedUser()">Assign OTP</button>
+    <p id="approvedMsg"></p>
 
-      <h3>Add New User</h3>
-      <input type="text" id="newUsername" placeholder="Enter new username" />
-      <input type="text" id="newUserOtp" placeholder="Enter OTP" />
-      <button onclick="addNewUser()">Add New User</button>
-      <p id="newUserMsg"></p>
+    <h3>Add New User</h3>
+    <input type="text" id="newUsername" placeholder="Enter new username" />
+    <input type="text" id="newUserPassword" placeholder="Enter Password" />
+    <select id="userTypeDropdown">
+      <option value="otp">One-Time Password</option>
+      <option value="timed">24-Hour Timed Password</option>
+    </select>
+    <button onclick="addNewUser()">Add New User</button>
+    <p id="newUserMsg"></p>
 
-      <hr style="margin: 30px 0;">
+    <hr style="margin: 30px 0;">
 
-      <h3>Add New Resource</h3>
-      <select id="categoryDropdown" onchange="handleCategoryChange(this)"></select>
-      <input type="text" id="newCategoryInput" placeholder="Enter new category name" style="display: none; margin-top: 10px;">
-      <input type="text" id="newResourceTitle" placeholder="Resource Title (e.g., 📚 Khan Academy)">
-      <input type="text" id="newResourceUrl" placeholder="Resource URL (e.g., https://...)">
-      <textarea id="newResourceSubtext" placeholder="Subtext / Description" rows="3" style="width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px;"></textarea>
-      <button onclick="addNewResource()">Add Resource</button>
-      <p id="resourceMsg"></p>
+    <h3>Add New Resource</h3>
+    <select id="categoryDropdown" onchange="handleCategoryChange(this)"></select>
+    <input type="text" id="newCategoryInput" placeholder="Enter new category name" style="display: none; margin-top: 10px;">
+    <input type="text" id="newResourceTitle" placeholder="Resource Title (e.g., 📚 Khan Academy)">
+    <input type="text" id="newResourceUrl" placeholder="Resource URL (e.g., https://...)">
+    <textarea id="newResourceSubtext" placeholder="Subtext / Description" rows="3" style="width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px;"></textarea>
+    <button onclick="addNewResource()">Add Resource</button>
+    <p id="resourceMsg"></p>
 
-      <hr style="margin: 30px 0;">
+    <hr style="margin: 30px 0;">
 
-      <h3>Manage Existing Resources</h3>
-      <button onclick="displayManageableResources()">Load & Refresh Resources</button>
-      <button onclick="deleteSelectedItems()" style="background: #c82333; border-color: #c82333;">Delete Selected Items</button>
-      <div id="resource-list" style="margin-top: 15px; text-align: left;"></div>
-    </div>
+    <h3>Manage Existing Resources</h3>
+    <button onclick="displayManageableResources()">Load & Refresh Resources</button>
+    <button onclick="deleteSelectedItems()" style="background: #c82333; border-color: #c82333;">Delete Selected Items</button>
+    <div id="resource-list" style="margin-top: 15px; text-align: left;"></div>
+  </div>
+
+  <hr style="margin: 30px 0;">
+
+  <h3>Database Viewer</h3>
+  <div style="margin-bottom: 15px;">
+    <button onclick="viewTable('users')">View Users Table</button>
+    <button onclick="viewTable('access_logs')">View Logs Table</button>
+    <span id="viewer-message" style="margin-left: 15px;"></span>
+  </div>
+  <div id="data-viewer-output" style="overflow-x: auto;"></div>
 
     <button id="logoutButton" onclick="logout()">Log Out</button>
   </div>
@@ -249,22 +259,27 @@
     });
   }
 
-  async function assignOtpToApprovedUser() {
-    const username = document.getElementById('approvedUsersDropdown').value;
-    const otp = document.getElementById('approvedUserOtp').value;
+    async function assignOtpToApprovedUser() {
+      const username = document.getElementById('approvedUsersDropdown').value;
+      const password = document.getElementById('approvedUserOtp').value; // This is the OTP value
 
-    const res = await fetch('/api/admin/add-otp', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentAdminCode}`
-      },
-      body: JSON.stringify({ username, otp })
-    });
+      // We call the same modern 'add-user' endpoint, and just tell it the type is 'otp'
+      const res = await fetch('/api/admin/add-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentAdminCode}`
+        },
+        body: JSON.stringify({ username: username, password: password, type: 'otp' })
+      });
 
-    const data = await res.json();
-    document.getElementById('approvedMsg').textContent = data.message || data.error;
-  }
+      const data = await res.json();
+      document.getElementById('approvedMsg').textContent = data.message || data.error;
+
+      if (data.success) {
+        document.getElementById('approvedUserOtp').value = ''; // Clear the input on success
+      }
+    }
 
     // Replace the old addNewUser function with this one
     async function addNewUser() {
@@ -491,6 +506,77 @@
       displayManageableResources();
     }
 
+    // Add these two new functions inside the <script> tag in admin.html
+
+    /**
+     * Fetches data from a specified table and displays it.
+     * @param {string} tableName - The name of the table to view ('users' or 'access_logs').
+     */
+    async function viewTable(tableName) {
+      const outputDiv = document.getElementById('data-viewer-output');
+      const messageEl = document.getElementById('viewer-message');
+      outputDiv.innerHTML = 'Loading...';
+      messageEl.textContent = '';
+
+      try {
+        const res = await fetch(`/api/admin/view-table/${tableName}`, {
+          headers: { 'Authorization': `Bearer ${currentAdminCode}` }
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to fetch data.');
+        }
+
+        const data = await res.json();
+
+        if (data.length === 0) {
+          outputDiv.innerHTML = `<p>No records found in the '${tableName}' table.</p>`;
+          return;
+        }
+
+        // If we get data, generate and display the HTML table
+        outputDiv.innerHTML = createHtmlTable(data);
+        messageEl.textContent = `Showing the 50 newest records from '${tableName}'.`;
+
+      } catch (error) {
+        outputDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+      }
+    }
+
+    /**
+     * A helper function that takes an array of data and creates an HTML table string.
+     * @param {Array<Object>} data - An array of objects from the database.
+     * @returns {string} - The HTML string for the table.
+     */
+    function createHtmlTable(data) {
+      if (!data || data.length === 0) return '';
+
+      const headers = Object.keys(data[0]);
+
+      // Start table and create the header row
+      let tableHtml = '<table><thead><tr>';
+      headers.forEach(header => {
+        tableHtml += `<th>${header}</th>`;
+      });
+      tableHtml += '</tr></thead>';
+
+      // Create the body rows
+      tableHtml += '<tbody>';
+      data.forEach(row => {
+        tableHtml += '<tr>';
+        headers.forEach(header => {
+          // Display NULL values as a faint 'null' for clarity
+          const value = row[header] === null ? '<em style="color:#999;">null</em>' : row[header];
+          tableHtml += `<td>${value}</td>`;
+        });
+        tableHtml += '</tr>';
+      });
+      tableHtml += '</tbody></table>';
+
+      return tableHtml;
+    }
+    
   </script>
 </body>
 </html>

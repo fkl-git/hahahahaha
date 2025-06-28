@@ -188,6 +188,35 @@ app.get('/api/logs', async (req, res) => {
   }
 });
 
+app.get('/api/admin/view-table/:tableName', async (req, res) => {
+  // 1. Authenticate the admin
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  // 2. Safely get the table name from the URL
+  const tableName = req.params.tableName;
+
+  // 3. IMPORTANT: Whitelist allowed table names to prevent security issues
+  const allowedTables = ['users', 'access_logs'];
+  if (!allowedTables.includes(tableName)) {
+    return res.status(400).json({ error: 'Invalid table name specified.' });
+  }
+
+  // 4. Fetch the data from the database
+  try {
+    // We use "ORDER BY id DESC" to show the newest records first
+    // We use "LIMIT 50" to avoid fetching too much data at once
+    const query = `SELECT * FROM ${tableName} ORDER BY id DESC LIMIT 50;`;
+    const result = await pool.query(query);
+    res.json(result.rows); // Send the data back to the browser
+  } catch (err) {
+    console.error(`Error fetching table ${tableName}:`, err.stack);
+    res.status(500).json({ error: `Failed to fetch data for table '${tableName}'.` });
+  }
+});
+
+
 // ===================================================================
 // === RESOURCE Endpoints (using the resources.json file) ===
 // ===================================================================
