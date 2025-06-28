@@ -104,6 +104,27 @@
         background-color: #800000;
     }
 
+    .button-toolbar {
+      display: flex; /* This turns on Flexbox! */
+      justify-content: space-between; /* This spreads the items out evenly */
+      align-items: center; /* This aligns them vertically in the middle */
+      gap: 10px; /* This adds a small gap between items */
+    }
+
+    .button-toolbar span {
+      margin-left: auto; /* Push the message text to the far right */
+      font-style: italic;
+      color: #555;
+    }
+
+    /* --- Button Color Styles --- */
+    .btn-warning {
+      background-color: #ffc107;
+      color: #000;
+    }
+    .btn-danger {
+      background-color: #c82333;
+    }
   </style>
 </head>
 <body>
@@ -183,15 +204,14 @@
 
   <hr style="margin: 30px 0;">
 
-  <h3>Database Viewer</h3>
-  <div style="margin-bottom: 15px;">
-    <button onclick="viewTable('users')">View Users Table</button>
-    <button onclick="migrateData()" style="background: #ffc107; color: #000;">Migrate Old Users</button>
-    <button onclick="viewTable('access_logs')">View Logs Table</button>
-    <button onclick="clearAllLogs()" style="background-color: #c82333; margin-left: 20px;">Clear All Logs</button>
-    <span id="viewer-message" style="margin-left: 15px;"></span>
-  </div>
-  <div id="data-viewer-output" style="overflow-x: auto;"></div>
+    <h3>Database Viewer</h3>
+    <div class="button-toolbar" style="margin-bottom: 15px;">
+      <button onclick="viewTable('users')">View Users Table</button>
+      <button onclick="migrateData()" class="btn-warning">Migrate Old Users</button>
+      <button onclick="viewTable('access_logs')">View Logs Table</button>
+      <button onclick="clearAllLogs()" class="btn-danger">Clear All Logs</button>
+      <span id="viewer-message"></span>
+    </div>
 
     <button id="logoutButton" onclick="logout()">Log Out</button>
   </div>
