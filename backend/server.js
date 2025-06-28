@@ -5,43 +5,35 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname + '/../public'));
 app.use((req, res, next) => {
-  res.setHeader("X-Frame-Options", "DENY");
-  next();
+res.setHeader("X-Frame-Options", "DENY");
+next();
 });
 
 const LOG_FILE = __dirname + '/logs.json';
-const USERS_FILE = __dirname + '/users.json'; // Path to our new users file
+const USERS_FILE = __dirname + '/users.json';
 const ADMIN_SECRET = 'HKTUWC112';
 
 // --- Data Loading and Saving ---
 let users = {};
 if (fs.existsSync(USERS_FILE)) {
-  users = JSON.parse(fs.readFileSync(USERS_FILE));
+users = JSON.parse(fs.readFileSync(USERS_FILE));
 } else {
-  // Create the file if it doesn't exist
-  fs.writeFileSync(USERS_FILE, JSON.stringify({}, null, 2));
+fs.writeFileSync(USERS_FILE, JSON.stringify({}, null, 2));
 }
 
 let loginLogs = [];
 if (fs.existsSync(LOG_FILE)) {
-  loginLogs = JSON.parse(fs.readFileSync(LOG_FILE));
+loginLogs = JSON.parse(fs.readFileSync(LOG_FILE));
 }
 
 const activeSessions = {};
 
 function saveUsers() {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
 function saveLogs() {
-  fs.writeFileSync(LOG_FILE, JSON.stringify(loginLogs, null, 2));
-}
-
-// Track active sessions (username -> entry log object)
-const activeSessions = {};
-
-function saveLogs() {
-  fs.writeFileSync(LOG_FILE, JSON.stringify(loginLogs, null, 2));
+fs.writeFileSync(LOG_FILE, JSON.stringify(loginLogs, null, 2));
 }
 
 // UPGRADED LOGIN ENDPOINT
