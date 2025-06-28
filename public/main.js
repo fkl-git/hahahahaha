@@ -86,7 +86,7 @@ window.onload = function () {
     const res = await fetch('/api/logout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: currentUsername, session_id: currentSessionId });
+    body: JSON.stringify({ username: currentUsername, session_id: currentSessionId })
     const data = await res.json();
     if (data.success) {
       alert("You have successfully logged out");
