@@ -50,7 +50,16 @@ app.post('/api/login', (req, res) => {
     return res.json({ success: false, message: "Username not found" });
   }
 
-  // --- LOGIC FOR TIMED PASSWORDS ---
+  // Check for an active session first to prevent multiple logins
+  if (activeSessions[username]) {
+    return res.json({ success: false, message: "User is already logged in." });
+  }
+
+  // --- Password and Rule Validation ---
+  if (user.password !== password) {
+    return res.json({ success: false, message: "Invalid password" });
+  }
+
   if (user.type === 'timed') {
     const twentyFourHours = 24 * 60 * 60; // 24 hours in seconds
     if (user.timeUsed >= twentyFourHours) {
@@ -61,29 +70,24 @@ app.post('/api/login', (req, res) => {
     if (user.lastLogin && (new Date() - new Date(user.lastLogin)) > threeDays) {
       return res.json({ success: false, message: "Password has expired (3 days of inactivity)." });
     }
-
-    if (user.password !== password) {
-      return res.json({ success: false, message: "Invalid password" });
-    }
-
-    // All checks passed, update lastLogin time
-    user.lastLogin = new Date().toISOString();
-
-  // --- LOGIC FOR ONE-TIME PASSWORDS (OTP) ---
   } else if (user.type === 'otp') {
     if (user.used) {
       return res.json({ success: false, message: "OTP already used" });
     }
-    if (user.password !== password) {
-      return res.json({ success: false, message: "Invalid password" });
-    }
-    user.used = true; // Mark OTP as used
-
   } else {
     return res.json({ success: false, message: "Invalid user type configured." });
   }
 
-  // --- Create Log Entry (For Both User Types) ---
+  // --- If all checks above passed, the login is successful ---
+
+  // Update user state
+  if (user.type === 'timed') {
+    user.lastLogin = new Date().toISOString();
+  } else { // type is 'otp'
+    user.used = true;
+  }
+
+  // Create Log Entry
   const entry = {
     username,
     timeIn: new Date().toISOString(),
@@ -99,7 +103,8 @@ app.post('/api/login', (req, res) => {
   saveUsers(); // Save the updated user data (used flag or lastLogin)
   saveLogs();
 
-  res.json({ success: true, message: "Login successful" });
+  // Send final success response
+  return res.json({ success: true, message: "Login successful" });
 });
 
 // UPGRADED LOGOUT ENDPOINT
