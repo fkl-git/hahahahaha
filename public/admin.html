@@ -138,6 +138,12 @@
     <input type="text" id="approvedUserOtp" placeholder="Enter new OTP" />
     <button onclick="assignOtpToApprovedUser()">Assign OTP</button>
     <p id="approvedMsg"></p>
+    <hr style="margin-top: 20px; margin-bottom: 20px;">
+    <h3>Update Existing User's Password</h3>
+    <select id="updateUserDropdown"></select>
+    <input type="text" id="updatedPassword" placeholder="Enter new password" />
+    <button onclick="updatePassword()" style="background-color: #ffc107; color: #000;">Update Password</button>
+    <p id="updateMsg"></p>
 
     <h3>Add New User</h3>
     <input type="text" id="newUsername" placeholder="Enter new username" />
@@ -237,26 +243,29 @@
     }
   }
 
-  async function loadApprovedUsers() {
-    const res = await fetch('/api/admin/users', {
-      headers: { 'Authorization': `Bearer ${currentAdminCode}` }
-    });
+    async function loadApprovedUsers() {
+      const res = await fetch('/api/admin/users', {
+        headers: { 'Authorization': `Bearer ${currentAdminCode}` }
+      });
+      if (!res.ok) return;
 
-    if (!res.ok) {
-      console.log("Failed to load users");
-      return;
+      const users = await res.json();
+      const assignDropdown = document.getElementById('approvedUsersDropdown');
+      const updateDropdown = document.getElementById('updateUserDropdown'); // Get the new dropdown
+
+      // Clear both dropdowns
+      assignDropdown.innerHTML = '';
+      updateDropdown.innerHTML = '';
+
+      users.forEach(u => {
+        const option = document.createElement('option');
+        option.value = u;
+        option.textContent = u;
+        // Add the option to both dropdowns
+        assignDropdown.appendChild(option.cloneNode(true)); 
+        updateDropdown.appendChild(option);
+      });
     }
-
-    const users = await res.json();
-    const dropdown = document.getElementById('approvedUsersDropdown');
-    dropdown.innerHTML = '';
-    users.forEach(u => {
-      const option = document.createElement('option');
-      option.value = u;
-      option.textContent = u;
-      dropdown.appendChild(option);
-    });
-  }
 
     async function assignOtpToApprovedUser() {
       const username = document.getElementById('approvedUsersDropdown').value;
@@ -277,6 +286,33 @@
 
       if (data.success) {
         document.getElementById('approvedUserOtp').value = ''; // Clear the input on success
+      }
+    }
+
+    async function updatePassword() {
+      const username = document.getElementById('updateUserDropdown').value;
+      const password = document.getElementById('updatedPassword').value;
+      const msgEl = document.getElementById('updateMsg');
+
+      if (!password) {
+        msgEl.textContent = 'Please enter a new password.';
+        return;
+      }
+
+      const res = await fetch('/api/admin/update-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentAdminCode}`
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+      msgEl.textContent = data.message || data.error;
+
+      if (data.success) {
+        document.getElementById('updatedPassword').value = ''; // Clear input on success
       }
     }
 

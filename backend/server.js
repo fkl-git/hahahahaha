@@ -263,6 +263,26 @@ app.post('/api/admin/migrate-users', async (req, res) => {
   }
 });
 
+app.post('/api/admin/update-password', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Missing username or new password.' });
+  }
+
+  try {
+    const query = 'UPDATE users SET password = $1 WHERE username = $2';
+    await pool.query(query, [password, username]);
+    res.json({ success: true, message: `Password for '${username}' has been updated.` });
+  } catch (err) {
+    console.error('Update password error:', err.stack);
+    res.status(500).json({ error: 'Failed to update password.' });
+  }
+});
+
 // ===================================================================
 // === RESOURCE Endpoints (using the resources.json file) ===
 // ===================================================================
