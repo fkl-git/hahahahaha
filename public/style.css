@@ -870,29 +870,28 @@ body.dark-mode .side-panel .close-button {
   width: 100%;
   height: 352px; /* Standard height for Spotify embeds */
 }
-
-/* ======================================= */
-/* ===    MOBILE RESPONSIVE STYLES     === */
-/* ======================================= */
+/* ================================================= */
+/* === FINAL MOBILE RESPONSIVE STYLES (REVISED) === */
+/* ================================================= */
 @media (max-width: 768px) {
 
-    /* --- 1. Fix Uneven Card Heights on Mobile --- */
+    /* --- 1. CARD LAYOUT FIX: Force equal card heights --- */
     .grid-container {
-        padding: 15px;
+        display: grid;              /* Use Grid for its powerful 2D alignment */
+        grid-auto-rows: 1fr;      /* This is the key: it forces all rows to be of equal height */
+        grid-template-columns: 1fr; /* A single column layout */
         gap: 15px;
-        /* Switch to CSS Grid for powerful row control */
-        display: grid;
-        grid-template-columns: 1fr; /* This creates our single column */
-        grid-auto-rows: 1fr;      /* This is the magic: it makes all rows equal height */
+        padding: 15px;
     }
     .card.resource-card {
-        /* We no longer need flex-basis from the old code. Grid handles it. */
-        display: flex;          /* Use flexbox *inside* each card... */
-        flex-direction: column; /* ...to help content align vertically. */
+        /* These styles ensure the card and its content can fill the space */
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
 
 
-    /* --- 2. Fix Scrolling Toolkit on Mobile --- */
+    /* --- 2. TOOLKIT LAYOUT FIX: Condense content to prevent scrolling --- */
     .side-panel {
         width: 100%;
         max-width: 100%;
@@ -900,7 +899,6 @@ body.dark-mode .side-panel .close-button {
         box-shadow: none;
     }
     .side-panel-content {
-        /* Make content more compact vertically */
         padding: 0 20px 15px 20px;
     }
     .dashboard-header {
@@ -908,20 +906,49 @@ body.dark-mode .side-panel .close-button {
         margin-bottom: 15px;
     }
     #timer-display {
-        font-size: 4em; /* Reduce timer font size */
-        margin: 5px 0;
+        font-size: 3.8em; /* Further reduce font size */
+        margin: 10px 0;
     }
     .cycle-tracker {
         margin-bottom: 15px;
     }
     .timer-controls {
-        margin-bottom: 25px; /* Reduce space after buttons */
+        margin-bottom: 25px;
     }
     .music-section {
-        padding-top: 15px;
+        padding-top: 20px;
     }
     #spotify-embed-container iframe {
-        height: 152px; /* Use a more compact Spotify embed height */
+        height: 80px; /* Use the most compact Spotify embed height */
     }
 
+
+    /* --- 3. TOOLKIT THEMING FIX: Add specific styles for LIGHT MODE --- */
+
+    /* Style the Spotify input field for light mode */
+    body:not(.dark-mode) #spotify-playlist-input {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        color: #333;
+    }
+
+    /* Style the Pause/Reset buttons for light mode */
+    body:not(.dark-mode) .timer-controls button {
+        color: #555;
+        border-color: #ccc;
+    }
+    body:not(.dark-mode) .timer-controls button:hover {
+        background-color: #e9e9e9;
+        color: #000;
+    }
+
+    /* Ensure the primary "Start" button looks correct in light mode */
+    body:not(.dark-mode) .timer-controls #start-btn {
+        background-color: #007aff;
+        border-color: #007aff;
+        color: #fff;
+    }
+     body:not(.dark-mode) .timer-controls #start-btn:hover {
+        filter: brightness(1.1);
+    }
 }
