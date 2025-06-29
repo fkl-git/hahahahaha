@@ -887,6 +887,11 @@ body.dark-mode .side-panel .close-button {
         flex: 1;
     }
 
+    .card {
+        margin-left: 15px; /* Add margin to the left */
+        margin-right: 15px; /* Add margin to the right */
+    }
+
 
     /* --- 2. TOOLKIT LAYOUT FIX: Condense content to prevent scrolling --- */
     .side-panel {
@@ -919,7 +924,18 @@ body.dark-mode .side-panel .close-button {
         padding-top: 20px;
     }
     #spotify-embed-container iframe {
-        height: 80px; /* Use the most compact Spotify embed height */
+        height: 352px; /* Revert to Standard height for Spotify embeds */
+    }
+    #spotify-playlist-input {
+        margin-bottom: 0; /* Remove any bottom margin that might push the button down */
+    }
+    .spotify-input-container {
+        flex-direction: column; /* Stack input and button vertically */
+        align-items: stretch; /* Make button full width */
+    }
+    #load-spotify-playlist-btn {
+        width: 100%; /* Make button full width */
+        padding: 12px 20px; /* Add a bit more padding */
     }
 
 
