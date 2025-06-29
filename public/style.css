@@ -833,3 +833,40 @@ body.dark-mode .side-panel .close-button {
     border-color: #007aff;
     filter: brightness(1.1);
 }
+/* --- Spotify Integration Styles --- */
+.spotify-input-container {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+#spotify-playlist-input {
+  flex-grow: 1;
+  background-color: #333;
+  border: 1px solid #555;
+  color: #eee;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 0.9em;
+}
+
+#load-spotify-playlist-btn {
+  background-color: #1DB954; /* Spotify Green */
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+#load-spotify-playlist-btn:hover {
+  filter: brightness(1.1);
+}
+
+#spotify-embed-container iframe {
+  border-radius: 12px;
+  width: 100%;
+  height: 352px; /* Standard height for Spotify embeds */
+}

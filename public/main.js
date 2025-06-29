@@ -322,5 +322,51 @@ window.onload = function () {
       loadSettings();
       resetTimer();
     }, 100);
+
+    // ===============================================
+    // === SPOTIFY PLAYLIST LOADER LOGIC =============
+    // ===============================================
+    const loadSpotifyBtn = document.getElementById('load-spotify-playlist-btn');
+    if (loadSpotifyBtn) {
+      loadSpotifyBtn.addEventListener('click', () => {
+        const playlistInput = document.getElementById('spotify-playlist-input');
+        const playlistUrl = playlistInput.value;
+        const embedContainer = document.getElementById('spotify-embed-container');
+
+        if (!playlistUrl || !playlistUrl.includes('spotify.com/playlist/')) {
+          alert("Please paste a valid Spotify Playlist link.");
+          return;
+        }
+
+        try {
+          // Extract the playlist ID from the URL
+          const urlObject = new URL(playlistUrl);
+          const pathParts = urlObject.pathname.split('/');
+          const playlistId = pathParts[pathParts.length - 1];
+
+          if (playlistId) {
+            // Create the iframe with the correct embed source
+            const iframe = document.createElement('iframe');
+            iframe.style.borderRadius = "12px";
+            iframe.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
+            iframe.width = "100%";
+            iframe.height = "352";
+            iframe.frameBorder = "0";
+            iframe.allowfullscreen = "";
+            iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+            iframe.loading = "lazy";
+
+            // Clear the old player and add the new one
+            embedContainer.innerHTML = '';
+            embedContainer.appendChild(iframe);
+          } else {
+            throw new Error("Could not find playlist ID.");
+          }
+        } catch (error) {
+          console.error("Error loading Spotify playlist:", error);
+          alert("Could not load the playlist. Please check the link and try again.");
+        }
+      });
+    }
   }
 };
