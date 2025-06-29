@@ -876,27 +876,52 @@ body.dark-mode .side-panel .close-button {
 /* ======================================= */
 @media (max-width: 768px) {
 
-    /* PROBLEM 1: Inconsistent card sizes on mobile.
-      SOLUTION: Make all resource cards take up the full width of the screen.
-                This creates a clean, single-column layout where differing
-                heights look natural.
-    */
+    /* --- 1. Fix Uneven Card Heights on Mobile --- */
     .grid-container {
-        padding: 15px; /* Adjust padding for smaller screens */
+        padding: 15px;
+        gap: 15px;
+        /* Switch to CSS Grid for powerful row control */
+        display: grid;
+        grid-template-columns: 1fr; /* This creates our single column */
+        grid-auto-rows: 1fr;      /* This is the magic: it makes all rows equal height */
     }
     .card.resource-card {
-        flex-basis: 100%; /* Make each card take up the full width */
+        /* We no longer need flex-basis from the old code. Grid handles it. */
+        display: flex;          /* Use flexbox *inside* each card... */
+        flex-direction: column; /* ...to help content align vertically. */
     }
 
-    /* PROBLEM 2: Toolkit panel is too wide on a narrow screen.
-      SOLUTION: Make the panel take up 100% of the screen width on mobile.
-                This is a common and user-friendly mobile pattern.
-    */
+
+    /* --- 2. Fix Scrolling Toolkit on Mobile --- */
     .side-panel {
         width: 100%;
         max-width: 100%;
-        border-left: none; /* Remove the side border on mobile */
-        box-shadow: none;  /* Remove the shadow on mobile */
+        border-left: none;
+        box-shadow: none;
+    }
+    .side-panel-content {
+        /* Make content more compact vertically */
+        padding: 0 20px 15px 20px;
+    }
+    .dashboard-header {
+        padding: 10px 0;
+        margin-bottom: 15px;
+    }
+    #timer-display {
+        font-size: 4em; /* Reduce timer font size */
+        margin: 5px 0;
+    }
+    .cycle-tracker {
+        margin-bottom: 15px;
+    }
+    .timer-controls {
+        margin-bottom: 25px; /* Reduce space after buttons */
+    }
+    .music-section {
+        padding-top: 15px;
+    }
+    #spotify-embed-container iframe {
+        height: 152px; /* Use a more compact Spotify embed height */
     }
 
 }
