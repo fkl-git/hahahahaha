@@ -887,9 +887,8 @@ body.dark-mode .side-panel .close-button {
         flex: 1;
     }
 
-    .card {
-        margin-left: 15px; /* Add margin to the left */
-        margin-right: 15px; /* Add margin to the right */
+    .card.resource-card {
+        margin: 0; /* Remove any extra margins, let the grid container handle spacing */
     }
 
 
