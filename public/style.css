@@ -680,3 +680,156 @@ body.dark-mode .side-panel-header h3 {
 body.dark-mode .side-panel .close-button {
   color: #eee;
 }
+
+/* ======================================= */
+/* === AESTHETIC TOOLKIT REDESIGN STYLES === */
+/* ======================================= */
+
+/* 1. Add overall padding and enable scrolling for the panel's content */
+.side-panel-content {
+    padding: 10px 25px 25px 25px;
+    overflow-y: auto; /* Lets the panel scroll on smaller screens */
+}
+
+/* 2. Make the main dashboard card blend into the panel seamlessly */
+#focus-dashboard.card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+/* 3. Redesign the Header ("Study Timer" & Settings icon) */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #333; /* A subtle divider line */
+    margin-bottom: 25px;
+}
+.dashboard-header h2 {
+    font-size: 1.1em;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Adds space between the play icon and text */
+}
+#settings-btn {
+    font-size: 1.4em;
+    color: #888;
+    transition: color 0.2s, transform 0.3s;
+}
+#settings-btn:hover {
+    color: #eee;
+    transform: rotate(60deg);
+}
+
+/* 4. Refine the Timer Display */
+.dashboard-content {
+    text-align: center;
+    padding: 0;
+}
+#timer-display {
+    font-size: 5em; /* A bit smaller to be less overwhelming */
+    font-weight: 300; /* Slightly bolder for better readability */
+    margin: 15px 0;
+}
+#timer-status {
+    color: #aaa;
+    font-size: 0.95em;
+    margin-bottom: 20px;
+    height: auto; /* Remove fixed height */
+}
+.cycle-tracker {
+    margin-bottom: 25px;
+}
+.cycle-dot {
+    background-color: #444; /* Darken the default dots */
+}
+.cycle-dot.completed {
+    background-color: #007aff; /* Use a consistent blue for completed cycles */
+}
+
+/* 5. Completely Redesign the Timer Control Buttons */
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+.timer-controls button {
+    border: 1px solid #555;
+    background: transparent;
+    color: #ddd;
+    font-weight: 500;
+    font-size: 0.9em;
+    padding: 10px 0; /* Vertical padding only */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    flex-grow: 1; /* Make buttons share space equally */
+    min-width: 80px;
+}
+/* Make the main "Start" button stand out */
+.timer-controls #start-btn {
+    background-color: #007aff;
+    border-color: #007aff;
+    color: #fff;
+    font-weight: 600;
+}
+.timer-controls button:hover {
+    border-color: #777;
+    color: #fff;
+}
+.timer-controls #start-btn:hover {
+    border-color: #007aff;
+    filter: brightness(1.1); /* Make it slightly brighter on hover */
+}
+
+/* 6. Restyle the Music Section */
+.music-section {
+    border-top: 1px solid #333;
+    padding-top: 25px;
+}
+#music-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1em;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+.playlist-buttons {
+    display: grid; /* Use a grid for better alignment */
+    grid-template-columns: 1fr 1fr 1fr; /* Three columns */
+    gap: 10px;
+    border-bottom: none;
+    padding-bottom: 10px;
+}
+.playlist-buttons .playlist-btn {
+    border: 1px solid #555;
+    background: transparent;
+    color: #ccc;
+    border-radius: 8px;
+    padding: 10px 5px;
+    text-align: center;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+/* Make the "Stop Music" button span the full width */
+.playlist-buttons .stop-btn {
+    grid-column: 1 / -1; /* This makes it span all 3 columns */
+}
+.playlist-buttons .playlist-btn.active {
+    background-color: #007aff;
+    border-color: #007aff;
+    color: #fff;
+}
+.playlist-buttons .playlist-btn:hover {
+    border-color: #777;
+    color: #fff;
+}
+.playlist-buttons .playlist-btn.active:hover {
+    border-color: #007aff;
+    filter: brightness(1.1);
+}
