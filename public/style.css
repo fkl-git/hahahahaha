@@ -194,6 +194,37 @@ body.dark-mode .login-button:hover {
   transition: background 0.3s;
 }
 
+.toolkit-toggle-button {
+  background: transparent;
+  border: 1px solid transparent; /* This is the line you changed */
+  color: #333;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px; /* This makes it a circle */
+  font-size: 1.2em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.toolkit-toggle-button:hover {
+  background-color: #f0f0f0;
+}
+
+/* --- Styles for Dark Mode --- */
+
+body.dark-mode .toolkit-toggle-button {
+  background: transparent; /* This removes the background color */
+  border-color: transparent; /* This hides the border */
+  color: #eee;
+}
+
+body.dark-mode .toolkit-toggle-button:hover {
+  background-color: #2a2a2a; /* This adds a very subtle background on hover */
+}
+
 .logout-button:hover {
   background: #d32f2f;
 }
@@ -633,4 +664,19 @@ body.dark-mode .playlist-btn.active {
 .overlay.open {
   opacity: 1;
   pointer-events: auto; /* Can be clicked when visible */
+}
+
+body.dark-mode .side-panel {
+  background-color: #1e1e1e; /* Gives the panel a dark background */
+  border-left: 1px solid #333;   /* Changes the left border to a dark color */
+}
+
+/* This makes sure the header text "✨ Toolkit" is light */
+body.dark-mode .side-panel-header h3 {
+  color: #eee;
+}
+
+/* This makes sure the 'x' close button is light */
+body.dark-mode .side-panel .close-button {
+  color: #eee;
 }
