@@ -928,6 +928,8 @@ body.dark-mode .side-panel .close-button {
     }
     #spotify-playlist-input {
         margin-bottom: 0; /* Remove any bottom margin that might push the button down */
+        font-size: 1em; /* Revert to normal font size */
+        padding: 10px 12px; /* Revert to normal padding */
     }
     .spotify-input-container {
         flex-direction: column; /* Stack input and button vertically */
