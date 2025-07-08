@@ -1,6 +1,5 @@
 // =================== FINAL and COMPLETE server.js ===================
 const express = require('express');
-const { URL } = require('url');
 const { Pool } = require('pg'); // Import the pg library
 const fs = require('fs'); // Keep fs for resource management
 const app = express();
@@ -14,28 +13,11 @@ app.use((req, res, next) => {
 });
 
 // --- Database Connection ---
-if (!process.env.DATABASE_URL) {
-  console.error('FATAL ERROR: DATABASE_URL environment variable is not set.');
-  // In a real production app on Render, you might want the server to fail loudly.
-  // process.exit(1); 
-}
-
-// Manually parse the database URL to have full control
-const dbUrl = new URL(process.env.DATABASE_URL);
-
 const pool = new Pool({
-  user: dbUrl.username,
-  password: dbUrl.password,
-  host: dbUrl.hostname,
-  port: dbUrl.port,
-  database: dbUrl.pathname.slice(1), // .slice(1) removes the leading '/'
-
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
-  },
-
-  // Force the connection to use IPv4. This setting will now be honored.
-  family: 4
+  }
 });
 
 const ADMIN_SECRET = 'HKTUWC112';
