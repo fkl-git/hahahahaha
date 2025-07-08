@@ -54,8 +54,20 @@ async function initializeDatabase(retries = 5, delay = 5000) {
         );
       `;
 
+      const resourceTableQuery = `
+        CREATE TABLE IF NOT EXISTS resources (
+          id SERIAL PRIMARY KEY,
+          category VARCHAR(255) NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          url TEXT NOT NULL,
+          subtext TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+      `;
+
       await pool.query(userTableQuery);
       await pool.query(logTableQuery);
+      await pool.query(resourceTableQuery);
       console.log('Database tables are ready.');
 
       return; // Exit the function successfully if all queries passed
@@ -328,127 +340,149 @@ app.delete('/api/admin/clear-logs', async (req, res) => {
 // ===================================================================
 
 // GET ALL RESOURCES
-app.get('/api/resources', (req, res) => {
-  fs.readFile(__dirname + '/resources.json', 'utf8', (err, data) => {
-    if (err) {
-      console.error("Error reading resources.json:", err);
-      return res.status(500).json({ error: 'Could not load resources.' });
-    }
-    res.json(JSON.parse(data));
-  });
+app.get('/api/resources', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM resources ORDER BY category, title');
+
+    // The frontend expects data grouped by category, so we'll re-shape it here.
+    const groupedResources = result.rows.reduce((acc, resource) => {
+      const { category } = resource;
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(resource);
+      return acc;
+    }, {});
+
+    res.json(groupedResources);
+  } catch (err) {
+    console.error("Error getting resources from database:", err.stack);
+    res.status(500).json({ error: 'Could not load resources.' });
+  }
 });
 
+
 // ADD A NEW RESOURCE (ADMIN)
-app.post('/api/admin/resource', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+app.post('/api/admin/resource', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
   const { category, title, url, subtext } = req.body;
   if (!category || !title || !url) return res.status(400).json({ error: 'Missing required fields' });
 
-  const resourceFile = __dirname + '/resources.json';
-  fs.readFile(resourceFile, 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
-
-    const resources = JSON.parse(data);
-    const newResource = { id: Date.now(), title, url, subtext };
-
-    if (resources[category]) {
-      resources[category].push(newResource);
-    } else {
-      resources[category] = [newResource];
-    }
-
-    fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
-      if (writeErr) return res.status(500).json({ error: 'Failed to save new resource.' });
-      res.json({ success: true, message: `Resource '${title}' added successfully!` });
-    });
-  });
+  try {
+    const query = 'INSERT INTO resources (category, title, url, subtext) VALUES ($1, $2, $3, $4)';
+    await pool.query(query, [category, title, url, subtext]);
+    res.json({ success: true, message: `Resource '${title}' added successfully!` });
+  } catch (err) {
+    console.error("Error adding resource to database:", err.stack);
+    res.status(500).json({ error: 'Failed to save new resource.' });
+  }
 });
 
+
 // DELETE A SINGLE RESOURCE (ADMIN)
-app.delete('/api/admin/resource', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+app.delete('/api/admin/resource', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { category, id } = req.body;
-  if (!category || !id) return res.status(400).json({ error: 'Missing category or resource ID' });
+  const { id } = req.body; // We only need the unique ID
+  if (!id) return res.status(400).json({ error: 'Missing resource ID' });
 
-  const resourceFile = __dirname + '/resources.json';
-  fs.readFile(resourceFile, 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
-
-    const resources = JSON.parse(data);
-    if (!resources[category]) return res.status(404).json({ error: 'Category not found.' });
-
-    const indexToDelete = resources[category].findIndex(resource => resource.id === id);
-    if (indexToDelete > -1) {
-      resources[category].splice(indexToDelete, 1);
-    } else {
-      return res.status(404).json({ error: 'Resource ID not found in this category.' });
-    }
-
-    fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
-      if (writeErr) return res.status(500).json({ error: 'Failed to save updated resources.' });
-      res.json({ success: true, message: 'Resource deleted successfully!' });
-    });
-  });
+  try {
+    await pool.query('DELETE FROM resources WHERE id = $1', [id]);
+    res.json({ success: true, message: 'Resource deleted successfully!' });
+  } catch (err) {
+    console.error("Error deleting resource from database:", err.stack);
+    res.status(500).json({ error: 'Failed to delete resource.' });
+  }
 });
 
 // DELETE A CATEGORY
-app.delete('/api/admin/category', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+app.delete('/api/admin/category', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
   const { category } = req.body;
   if (!category) return res.status(400).json({ error: 'Missing category' });
 
-  const resourceFile = __dirname + '/resources.json';
-  fs.readFile(resourceFile, 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
-
-    const resources = JSON.parse(data);
-    if (resources[category]) {
-      delete resources[category];
-    } else {
-      return res.status(404).json({ error: 'Category not found.' });
-    }
-
-    fs.writeFile(resourceFile, JSON.stringify(resources, null, 2), (writeErr) => {
-      if (writeErr) return res.status(500).json({ error: 'Failed to save updated resources.' });
-      res.json({ success: true, message: `Category '${category}' deleted successfully!` });
-    });
-  });
+  try {
+    await pool.query('DELETE FROM resources WHERE category = $1', [category]);
+    res.json({ success: true, message: `Category '${category}' deleted successfully!` });
+  } catch (err) {
+    console.error("Error deleting category from database:", err.stack);
+    res.status(500).json({ error: 'Failed to delete category.' });
+  }
 });
 
 // BULK DELETE RESOURCES
-app.delete('/api/admin/bulk-delete', (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth || auth !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
+app.delete('/api/admin/bulk-delete', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { resources } = req.body;
-  if (!resources) return res.status(400).json({ error: 'Invalid request body.' });
+  const { resources } = req.body; // Expects an array of objects like [{id: 1}, {id: 2}]
+  if (!resources || !Array.isArray(resources) || resources.length === 0) return res.status(400).json({ error: 'Invalid request body.' });
 
-  const resourceFile = __dirname + '/resources.json';
-  fs.readFile(resourceFile, 'utf8', (err, data) => {
-    if (err) return res.status(500).json({ error: 'Failed to read resources file.' });
+  try {
+    // Extract just the IDs from the array of objects
+    const idsToDelete = resources.map(resource => resource.id);
 
-    let resourcesData = JSON.parse(data);
-    resources.forEach(itemToDelete => {
-      if (resourcesData[itemToDelete.category]) {
-        resourcesData[itemToDelete.category] = resourcesData[itemToDelete.category].filter(
-          resource => resource.id !== itemToDelete.id
-        );
-      }
-    });
+    // Use a single query to delete all matching IDs
+    const query = 'DELETE FROM resources WHERE id = ANY($1::int[])';
+    await pool.query(query, [idsToDelete]);
 
-    fs.writeFile(resourceFile, JSON.stringify(resourcesData, null, 2), (writeErr) => {
-      if (writeErr) return res.status(500).json({ error: 'Failed to save updated resources.' });
-      res.json({ success: true, message: 'Selected items deleted successfully!' });
-    });
-  });
+    res.json({ success: true, message: 'Selected items deleted successfully!' });
+  } catch (err) {
+    console.error("Error bulk deleting resources from database:", err.stack);
+    res.status(500).json({ error: 'Failed to save updated resources.' });
+  }
 });
 
+app.post('/api/admin/migrate-resources', async (req, res) => {
+  if (!req.headers.authorization || req.headers.authorization !== `Bearer ${ADMIN_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const client = await pool.connect();
+  try {
+    // 1. Read the old resources.json file
+    const oldResourcesFile = fs.readFileSync(__dirname + '/resources.json', 'utf8');
+    const oldResources = JSON.parse(oldResourcesFile);
+    let migratedCount = 0;
+
+    // 2. Start a database transaction
+    await client.query('BEGIN');
+
+    // 3. Clear the resources table to avoid duplicates if run multiple times
+    await client.query('TRUNCATE TABLE resources RESTART IDENTITY');
+
+    // 4. Loop through the old data and insert it into the database
+    for (const category in oldResources) {
+      for (const resource of oldResources[category]) {
+        const insertQuery = `
+          INSERT INTO resources (category, title, url, subtext) 
+          VALUES ($1, $2, $3, $4)
+        `;
+        await client.query(insertQuery, [
+          category,
+          resource.title,
+          resource.url,
+          resource.subtext || null // Use null if subtext is missing
+        ]);
+        migratedCount++;
+      }
+    }
+
+    // 5. If all goes well, commit the changes
+    await client.query('COMMIT');
+    res.json({ success: true, message: `Migration complete. Copied ${migratedCount} resources to the database.` });
+
+  } catch (err) {
+    // 6. If anything fails, roll back all changes
+    await client.query('ROLLBACK');
+    console.error('Resource migration error:', err.stack);
+    res.status(500).json({ error: 'Failed to migrate resource data.' });
+  } finally {
+    // 7. Release the database client
+    client.release();
+  }
+});
 
 // --- Server Start ---
 const PORT = process.env.PORT || 3000;

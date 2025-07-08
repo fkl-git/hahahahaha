@@ -208,6 +208,7 @@
     <div class="button-toolbar" style="margin-bottom: 15px;">
       <button onclick="viewTable('users')">View Users Table</button>
       <button onclick="migrateData()" class="btn-warning">Migrate Old Users</button>
+      <button onclick="migrateResources()" class="btn-warning">Migrate Resources</button>
       <button onclick="viewTable('access_logs')">View Logs Table</button>
       <button onclick="clearAllLogs()" class="btn-danger">Clear All Logs</button>
       <span id="viewer-message"></span>
@@ -713,6 +714,28 @@
 
       messageEl.textContent = '';
       viewTable('access_logs'); // Refresh the logs view, which should now be empty
+    }
+
+    async function migrateResources() {
+      if (!confirm("Are you sure you want to MIGRATE resources from the JSON file? This will ERASE any resources already in the database table and replace them with the content of resources.json. This should only be done once.")) {
+        return;
+      }
+      const messageEl = document.getElementById('viewer-message');
+      messageEl.textContent = 'Migrating resources...';
+
+      const res = await fetch('/api/admin/migrate-resources', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${currentAdminCode}` }
+      });
+      const data = await res.json();
+
+      alert(data.message || data.error);
+      messageEl.textContent = '';
+
+      // Automatically refresh the manageable resources view
+      if(data.success) {
+          displayManageableResources();
+      }
     }
   </script>
 </body>
