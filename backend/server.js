@@ -16,8 +16,10 @@ app.use((req, res, next) => {
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false
-  }
+  rejectUnauthorized: false
+  },
+  // vvv THIS IS THE NEW LINE TO ADD vvv
+  family: 4
 });
 
 const ADMIN_SECRET = 'HKTUWC112';
